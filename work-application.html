@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>作品申请 - UI效果图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563EB;
+      --primary-light: #3B82F6;
+      --primary-soft: #EFF6FF;
+      --primary-border: #93C5FD;
+      --primary-muted: #60A5FA;
+      --primary-bg-stripe: rgba(37, 99, 235, 0.06);
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+      --text-hint: #6B8CAE;
+      --bg-page: #F1F5F9;
+      --card-bg: #FFFFFF;
+      --required: #EF4444;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+    }
+
+    body {
+      font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #CBD5E1 0%, #E2E8F0 50%, #BFDBFE 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .phone {
+      width: 375px;
+      min-height: 812px;
+      background: var(--bg-page);
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.06),
+        0 25px 50px -12px rgba(37, 99, 235, 0.2),
+        0 12px 24px -8px rgba(15, 23, 42, 0.15);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: #fff;
+    }
+    .status-icons {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    /* Nav Bar */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 44px;
+      background: #fff;
+      position: relative;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .nav-back {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-light);
+      font-size: 22px;
+      font-weight: 300;
+      cursor: pointer;
+    }
+    .nav-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Primary Tabs */
+    .primary-tabs {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .primary-tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px 8px 12px;
+      font-size: 15px;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .primary-tab.active {
+      color: var(--primary);
+      font-weight: 500;
+    }
+    .primary-tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    /* Content Area */
+    .content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    /* Form Card */
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 20px 16px 24px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    }
+
+    /* Secondary Tabs */
+    .secondary-tabs {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .secondary-tab {
+      flex: 1;
+      text-align: center;
+      font-size: 15px;
+      color: var(--text-muted);
+      cursor: pointer;
+      position: relative;
+    }
+    .secondary-tab.active {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .secondary-tab + .secondary-tab::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 14px;
+      background: #E2E8F0;
+    }
+
+    /* Form Fields */
+    .field { margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .field-label {
+      font-size: 14px;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .field-label .required {
+      color: var(--required);
+      margin-left: 2px;
+    }
+
+    /* Upload Box */
+    .upload-box {
+      width: 100%;
+      aspect-ratio: 420 / 560;
+      max-height: 280px;
+      border: 1.5px dashed var(--primary-border);
+      border-radius: var(--radius-md);
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 8px,
+          var(--primary-bg-stripe) 8px,
+          var(--primary-bg-stripe) 9px
+        ),
+        var(--primary-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-box:hover {
+      border-color: var(--primary-light);
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          transparent,
+          transparent 8px,
+          rgba(37, 99, 235, 0.1) 8px,
+          rgba(37, 99, 235, 0.1) 9px
+        ),
+        #DBEAFE;
+    }
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .upload-text {
+      font-size: 14px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .upload-hint {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-hint);
+      line-height: 1.6;
+    }
+
+    /* Input & Select */
+    .input-wrap {
+      position: relative;
+    }
+    .input-field,
+    .select-field {
+      width: 100%;
+      height: 44px;
+      padding: 0 36px 0 14px;
+      border: 1px solid #E2E8F0;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: #fff;
+      outline: none;
+      appearance: none;
+      transition: border-color 0.2s;
+    }
+    .select-field.primary-border {
+      border-color: var(--primary-border);
+    }
+    .select-field.primary-border + .select-arrow {
+      color: var(--primary);
+    }
+    .input-field::placeholder,
+    .select-field {
+      color: var(--text-muted);
+    }
+    .input-field:focus,
+    .select-field:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .select-arrow {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      font-size: 12px;
+    }
+
+    /* Designer Row */
+    .designer-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .designer-row .input-wrap { flex: 1; }
+    .preview-link {
+      flex-shrink: 0;
+      font-size: 14px;
+      color: var(--primary-light);
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      padding: 4px 0;
+    }
+    .preview-link:hover {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* Submit Button (optional footer) */
+    .submit-area {
+      padding: 16px;
+      background: var(--bg-page);
+    }
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Home Indicator */
+    .home-indicator {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-page);
+    }
+    .home-indicator::after {
+      content: "";
+      width: 134px;
+      height: 5px;
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <p class="page-label">作品申请 · 蓝色调 UI 效果图</p>
+
+  <div class="phone">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>18:23</span>
+      <div class="status-icons">
+        <span>📶</span>
+        <span>WiFi</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-bar">
+      <div class="nav-back">‹</div>
+      <span class="nav-title">作品申请</span>
+    </div>
+
+    <!-- Primary Tabs -->
+    <div class="primary-tabs">
+      <div class="primary-tab active">申请封面</div>
+      <div class="primary-tab">申请签约</div>
+      <div class="primary-tab">申请完本奖</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="form-card">
+        <!-- Secondary Tabs -->
+        <div class="secondary-tabs">
+          <div class="secondary-tab active">申请制作</div>
+          <div class="secondary-tab">历史申请</div>
+        </div>
+
+        <!-- Cover Upload -->
+        <div class="field">
+          <div class="field-label">作品封面：（420*560）</div>
+          <div class="upload-box">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span class="upload-text">上传底图</span>
+          </div>
+          <p class="upload-hint">（若尺寸过小、模糊、人物过多、涉及版权问题、设计师有权更换图片）</p>
+        </div>
+
+        <!-- Work Selection -->
+        <div class="field">
+          <div class="field-label">申请作品：<span class="required">*</span></div>
+          <div class="input-wrap">
+            <select class="select-field primary-border">
+              <option value="">请选择申请作品</option>
+            </select>
+            <span class="select-arrow">▼</span>
+          </div>
+        </div>
+
+        <!-- Style -->
+        <div class="field">
+          <div class="field-label">制作风格：</div>
+          <input type="text" class="input-field" placeholder="古风、简约、流行等" />
+        </div>
+
+        <!-- Notes -->
+        <div class="field">
+          <div class="field-label">备注信息：</div>
+          <input type="text" class="input-field" placeholder="20字以内的简单描述" />
+        </div>
+
+        <!-- Designer -->
+        <div class="field">
+          <div class="field-label">专属设计：</div>
+          <div class="designer-row">
+            <div class="input-wrap">
+              <select class="select-field primary-border">
+                <option value="">暂不选择设计师</option>
+              </select>
+              <span class="select-arrow">▼</span>
+            </div>
+            <a href="#" class="preview-link">预览</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-area">
+      <button class="submit-btn">提交申请</button>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

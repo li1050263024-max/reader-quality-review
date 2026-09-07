@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>我的</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #3B82F6;
+      --primary-light: #60A5FA;
+      --primary-soft: #EFF6FF;
+      --accent-orange: #F97316;
+      --accent-orange-bg: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+      --text-primary: #1E293B;
+      --text-secondary: #64748B;
+      --text-muted: #94A3B8;
+      --bg-page: #F1F5F9;
+      --card-bg: #FFFFFF;
+      --divider: #F1F5F9;
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.06);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #E2E8F0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 16px 40px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .phone {
+      width: 375px;
+      min-height: 812px;
+      background: var(--bg-page);
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 44px;
+      padding: 12px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      position: relative;
+      z-index: 2;
+    }
+    .status-icons { display: flex; gap: 5px; align-items: center; }
+    .status-icons span { font-size: 12px; }
+
+    /* Header */
+    .header {
+      background: linear-gradient(180deg, #BFDBFE 0%, #DBEAFE 35%, #F1F5F9 100%);
+      padding: 8px 20px 24px;
+      position: relative;
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .avatar svg { width: 36px; height: 36px; opacity: 0.3; }
+
+    .profile-info { flex: 1; min-width: 0; }
+    .username {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .gender-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #FDF2F8;
+      color: #EC4899;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .chevron {
+      color: var(--text-muted);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Stats */
+    .stats {
+      display: flex;
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius-md);
+      padding: 14px 0;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .stat-item:active { transform: scale(0.96); }
+    .stat-item:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 24px;
+      background: rgba(148, 163, 184, 0.3);
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Scrollable Content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 90px;
+      margin-top: -4px;
+    }
+
+    /* VIP Card */
+    .vip-card {
+      background: var(--accent-orange-bg);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(249, 115, 22, 0.12);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    .vip-card::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .vip-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .vip-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #9A3412;
+      line-height: 1.4;
+      flex: 1;
+      padding-right: 12px;
+    }
+    .vip-btn {
+      background: linear-gradient(135deg, #FB923C 0%, #F97316 100%);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .vip-btn:active {
+      transform: scale(0.96);
+      box-shadow: 0 1px 4px rgba(249, 115, 22, 0.3);
+    }
+    .vip-features {
+      display: flex;
+      justify-content: space-around;
+      position: relative;
+    }
+    .vip-feature {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .vip-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .vip-feature span {
+      font-size: 11px;
+      color: #C2410C;
+      font-weight: 500;
+    }
+
+    /* Quick Actions */
+    .quick-actions {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 18px 8px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-around;
+    }
+    .action-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      flex: 1;
+    }
+    .action-item:active { transform: scale(0.92); }
+    .action-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .action-icon.orange { background: #FFF7ED; }
+    .action-icon.yellow { background: #FEFCE8; }
+    .action-icon.cyan { background: #ECFEFF; }
+    .action-icon.blue { background: #EFF6FF; }
+    .action-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Menu Cards */
+    .menu-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
+    }
+    .menu-item:active { background: #F8FAFC; }
+    .menu-item:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 52px;
+      right: 16px;
+      bottom: 0;
+      height: 1px;
+      background: var(--divider);
+    }
+    .menu-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .menu-icon.blue { background: #EFF6FF; color: #3B82F6; }
+    .menu-icon.purple { background: #F5F3FF; }
+    .menu-icon.green { background: #ECFDF5; }
+    .menu-icon.orange { background: #FFF7ED; }
+    .menu-icon.gray { background: #F1F5F9; }
+    .menu-text {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .menu-text.gradient {
+      background: linear-gradient(90deg, #8B5CF6, #3B82F6, #06B6D4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .menu-extra {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-right: 4px;
+    }
+    .menu-arrow {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Toggle Switch */
+    .toggle {
+      width: 44px;
+      height: 26px;
+      background: #E2E8F0;
+      border-radius: 13px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.25s;
+      flex-shrink: 0;
+    }
+    .toggle.active { background: var(--primary); }
+    .toggle-knob {
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.25s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+    .toggle.active .toggle-knob { transform: translateX(18px); }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 83px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(226, 232, 240, 0.8);
+      display: flex;
+      padding: 8px 0 28px;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .nav-item:active { transform: scale(0.92); }
+    .nav-icon {
+      font-size: 22px;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+    .nav-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .nav-item.active .nav-icon,
+    .nav-item.active .nav-label {
+      color: var(--primary);
+    }
+
+    /* Dark Mode */
+    body.dark {
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --bg-page: #0F172A;
+      --card-bg: #1E293B;
+      --divider: #334155;
+      background: #020617;
+    }
+    body.dark .phone { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    body.dark .header {
+      background: linear-gradient(180deg, #1E3A5F 0%, #1E293B 35%, #0F172A 100%);
+    }
+    body.dark .avatar { border-color: rgba(255,255,255,0.15); background: #334155; }
+    body.dark .stats {
+      background: rgba(30, 41, 59, 0.8);
+      border-color: rgba(51, 65, 85, 0.6);
+    }
+    body.dark .stat-item:not(:last-child)::after { background: rgba(51, 65, 85, 0.8); }
+    body.dark .vip-card {
+      background: linear-gradient(135deg, #431407 0%, #292524 100%);
+      border-color: rgba(249, 115, 22, 0.2);
+    }
+    body.dark .vip-title { color: #FDBA74; }
+    body.dark .vip-feature span { color: #FB923C; }
+    body.dark .vip-icon { background: rgba(0,0,0,0.2); }
+    body.dark .menu-item:active { background: #334155; }
+    body.dark .bottom-nav {
+      background: rgba(15, 23, 42, 0.95);
+      border-top-color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>10:56</span>
+      <div class="status-icons">
+        <span>📶</span>
+        <span>📡</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="profile-row">
+        <div class="avatar">
+          <svg viewBox="0 0 24 24" fill="#CBD5E1"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div class="profile-info">
+          <div class="username">这是一只可爱的猪猪侠</div>
+          <div class="user-meta">
+            <span>ID : 123456789</span>
+            <span class="gender-badge">♀</span>
+          </div>
+        </div>
+        <span class="chevron">›</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-value">10</div>
+          <div class="stat-label">体力值</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10</div>
+          <div class="stat-label">泡泡币</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">100</div>
+          <div class="stat-label">我的收入</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+      <!-- VIP Card -->
+      <section class="vip-card">
+        <div class="vip-top">
+          <div class="vip-title">会员尊享全站无广免费阅读</div>
+          <button class="vip-btn">立即开通</button>
+        </div>
+        <div class="vip-features">
+          <div class="vip-feature">
+            <div class="vip-icon">🚫</div>
+            <span>免广告</span>
+          </div>
+          <div class="vip-feature">
+            <div class="vip-icon">⚡</div>
+            <span>无限体力</span>
+          </div>
+          <div class="vip-feature">
+            <div class="vip-icon">📖</div>
+            <span>抢先阅读</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <div class="action-item">
+          <div class="action-icon orange">💰</div>
+          <span class="action-label">收益</span>
+        </div>
+        <div class="action-item">
+          <div class="action-icon yellow">💬</div>
+          <span class="action-label">互动</span>
+        </div>
+        <div class="action-item">
+          <div class="action-icon cyan">👤</div>
+          <span class="action-label">角色</span>
+        </div>
+        <div class="action-item">
+          <div class="action-icon blue">🔔</div>
+          <span class="action-label">通知</span>
+        </div>
+      </section>
+
+      <!-- Recharge -->
+      <section class="menu-card">
+        <div class="menu-item">
+          <div class="menu-icon blue">💴</div>
+          <span class="menu-text">充值金币</span>
+          <span class="menu-arrow">›</span>
+        </div>
+      </section>
+
+      <!-- Social -->
+      <section class="menu-card">
+        <div class="menu-item">
+          <div class="menu-icon purple">🤖</div>
+          <span class="menu-text gradient">AI 实验</span>
+          <span class="menu-extra">好玩有趣</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon green">🌍</div>
+          <span class="menu-text">社区</span>
+          <span class="menu-extra">图文社区</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon orange">✏️</div>
+          <span class="menu-text">征文活动</span>
+          <span class="menu-extra">有奖征文</span>
+          <span class="menu-arrow">›</span>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="menu-card">
+        <div class="menu-item" id="nightModeRow">
+          <div class="menu-icon gray">🌙</div>
+          <span class="menu-text">夜间模式</span>
+          <div class="toggle" id="nightToggle">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon blue">📝</div>
+          <span class="menu-text">网编专区</span>
+          <span class="menu-arrow">›</span>
+        </div>
+        <div class="menu-item">
+          <div class="menu-icon gray">⚙️</div>
+          <span class="menu-text">设置</span>
+          <span class="menu-arrow">›</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">首页</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">书架</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">🎭</span>
+        <span class="nav-label">角色广场</span>
+      </div>
+      <div class="nav-item">
+        <span class="nav-icon">✍️</span>
+        <span class="nav-label">写作</span>
+      </div>
+      <div class="nav-item active">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">我的</span>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    document.getElementById('nightToggle').addEventListener('click', function (e) {
+      e.stopPropagation();
+      this.classList.toggle('active');
+      document.body.classList.toggle('dark', this.classList.contains('active'));
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>领泡泡</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background: #E8ECF0;
+    }
+
+    body {
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      min-height: 100vh;
+      padding: 24px 16px;
+      flex-wrap: wrap;
+    }
+
+    .dev-side {
+      width: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .dev-side-title {
+      font-size: 13px;
+      color: #64748B;
+      font-weight: 600;
+    }
+    .dev-link {
+      display: block;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #CBD5E1;
+      color: #1E293B;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+    .dev-link:hover {
+      background: #EFF6FF;
+      border-color: #93C5FD;
+      color: #2563EB;
+    }
+    .dev-link.secondary {
+      font-weight: 500;
+      color: #64748B;
+      font-size: 13px;
+    }
+
+    .iphone15 {
+      --frame-color: #1C1C1E;
+      --bezel: 2px;
+      --screen-w: 393px;
+      --screen-h: 852px;
+      --outer-radius: 50px;
+      --inner-radius: 48px;
+      position: relative;
+      width: calc(var(--screen-w) + var(--bezel) * 2);
+      height: calc(var(--screen-h) + var(--bezel) * 2);
+      background: var(--frame-color);
+      border-radius: var(--outer-radius);
+      padding: var(--bezel);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 24px 48px rgba(0, 0, 0, 0.22),
+        0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+    .iphone15::before {
+      content: "";
+      position: absolute;
+      left: -1px;
+      top: 148px;
+      width: 2px;
+      height: 28px;
+      background: #3a3a3c;
+      border-radius: 1px 0 0 1px;
+      box-shadow: 0 44px 0 #3a3a3c, 0 78px 0 #3a3a3c;
+    }
+    .iphone15::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: 178px;
+      width: 2px;
+      height: 56px;
+      background: #3a3a3c;
+      border-radius: 0 1px 1px 0;
+    }
+    .iphone15-screen {
+      width: var(--screen-w);
+      height: var(--screen-h);
+      border-radius: var(--inner-radius);
+      overflow: hidden;
+      background: #F4F7FA;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .dynamic-island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 37px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .status-bar {
+      height: 54px;
+      padding: 16px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 5;
+    }
+    .status-icons { display: flex; gap: 5px; font-size: 13px; }
+
+    .page {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: linear-gradient(180deg, #B8D9F5 0%, #D6EAF8 28%, #F4F7FA 48%);
+    }
+    .page::-webkit-scrollbar { width: 0; }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 14px 8px;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .back-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: none;
+      font-size: 22px;
+      color: #555;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .coin-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px 4px 4px;
+      background: rgba(255,255,255,0.85);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #333;
+    }
+    .today-review-tip {
+      font-size: 11px;
+      color: #6B8499;
+      font-weight: 500;
+      margin-left: 2px;
+      white-space: nowrap;
+    }
+    .coin-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #5BB8FF, #2F8FEA);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rules-btn {
+      border: none;
+      background: rgba(255,255,255,0.7);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .hero {
+      position: relative;
+      padding: 8px 20px 18px;
+      text-align: center;
+    }
+    .hero-art {
+      width: 180px;
+      height: 140px;
+      margin: 0 auto 8px;
+      position: relative;
+    }
+    .book-stage {
+      width: 120px;
+      height: 88px;
+      margin: 30px auto 0;
+      background: linear-gradient(180deg, #EAF4FF, #C5DBF2);
+      border-radius: 16px 16px 10px 10px;
+      position: relative;
+      box-shadow: 0 10px 20px rgba(80, 130, 180, 0.18);
+    }
+    .book-stage::before {
+      content: "";
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      top: 18px;
+      height: 48px;
+      background: linear-gradient(180deg, #FFF8E8, #F2D7A4);
+      border-radius: 4px;
+      box-shadow: inset 0 0 0 1px rgba(180,140,80,0.2);
+    }
+    .book-stage::after {
+      content: "🌳";
+      position: absolute;
+      left: 50%;
+      top: -8px;
+      transform: translateX(-50%);
+      font-size: 34px;
+    }
+    .float-bubble {
+      position: absolute;
+      background: rgba(90, 170, 240, 0.92);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      box-shadow: 0 6px 14px rgba(60, 140, 210, 0.25);
+    }
+    .float-bubble.b1 {
+      width: 54px;
+      height: 54px;
+      left: 28px;
+      top: 18px;
+      font-size: 16px;
+    }
+    .float-bubble.b2 {
+      width: 72px;
+      height: 72px;
+      right: 18px;
+      top: 8px;
+      font-size: 15px;
+      line-height: 1.15;
+      padding: 6px;
+      text-align: center;
+    }
+    .float-bubble small {
+      font-size: 10px;
+      font-weight: 500;
+      opacity: 0.95;
+    }
+
+    .claim-btn {
+      margin: 6px auto 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 168px;
+      height: 44px;
+      padding: 0 28px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #FF9A4D, #FF5C7A);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(255, 100, 90, 0.35);
+      cursor: pointer;
+    }
+
+    .side-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 36px;
+      margin-top: -4px;
+    }
+    .side-action {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #5A7A96;
+      border: none;
+      background: none;
+      cursor: pointer;
+    }
+    .side-action .ico {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 8px rgba(80,120,160,0.12);
+    }
+
+    .section {
+      margin: 14px 12px 0;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 12px 12px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 12px;
+    }
+    .section-title span {
+      color: #FF6B4A;
+    }
+
+    .checkin-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .checkin-day {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      color: #888;
+    }
+    .checkin-box {
+      height: 54px;
+      border-radius: 10px;
+      background: #F3F7FB;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: #4A90E2;
+      font-weight: 700;
+      gap: 2px;
+    }
+    .checkin-box.chest {
+      background: linear-gradient(180deg, #FFF6E8, #FFE2B8);
+      color: #C47A16;
+    }
+    .chest-btn {
+      margin-top: 2px;
+      border: none;
+      background: linear-gradient(90deg, #FF9A4D, #FF6B3D);
+      color: #fff;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 8px;
+    }
+
+    .milestone {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 0 4px;
+    }
+    .milestone-track {
+      flex: 1;
+      height: 6px;
+      background: #F0F2F5;
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+    }
+    .milestone-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #FFB36B, #FF7A45);
+      border-radius: 999px;
+    }
+    .milestone-node {
+      text-align: center;
+      font-size: 11px;
+      color: #999;
+      min-width: 42px;
+    }
+    .milestone-node strong {
+      display: block;
+      color: #4A90E2;
+      font-size: 12px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-bottom: 28px;
+    }
+    .task-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid #F0F2F5;
+      border-radius: 14px;
+    }
+    .task-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .task-icon.orange { background: #FFF1E8; }
+    .task-icon.peach { background: #FFECE8; }
+    .task-icon.blue { background: #EAF4FF; }
+    .task-body { flex: 1; min-width: 0; }
+    .task-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+    }
+    .task-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #222;
+    }
+    .task-reward {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      color: #3B9AED;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .task-reward .mini-coin {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #4A9FE8;
+      color: #fff;
+      font-size: 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .task-desc {
+      font-size: 12px;
+      color: #999;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .task-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .task-progress {
+      flex: 1;
+      height: 4px;
+      background: #F0F2F5;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .task-progress > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #FFC08A, #FF8A5B);
+      border-radius: 999px;
+    }
+    .task-progress-text {
+      font-size: 11px;
+      color: #BBB;
+      white-space: nowrap;
+    }
+    .go-btn {
+      flex-shrink: 0;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #FF7A5C, #FF4D6A);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 10px rgba(255, 80, 90, 0.25);
+    }
+    .go-btn:active { transform: scale(0.96); }
+
+    .home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: 3px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    @media (max-width: 560px) {
+      html, body {
+        background: #F4F7FA;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        padding: 0;
+        gap: 0;
+        align-items: stretch;
+        justify-content: stretch;
+        min-height: 100dvh;
+      }
+      .dev-side { display: none !important; }
+      .iphone15 {
+        width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+      .iphone15::before,
+      .iphone15::after { display: none; }
+      .iphone15-screen {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+      }
+      .dynamic-island { display: none; }
+      .status-bar {
+        height: auto;
+        min-height: 20px;
+        padding: max(env(safe-area-inset-top, 0px), 8px) 16px 0;
+        font-size: 13px;
+      }
+      .home-indicator { display: none; }
+      .page {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="iphone15">
+    <div class="iphone15-screen">
+      <div class="dynamic-island"></div>
+      <div class="status-bar">
+        <span id="statusTime">17:32</span>
+        <div class="status-icons"><span>📶</span><span>5G</span><span>🔋</span></div>
+      </div>
+
+      <div class="page">
+        <div class="nav">
+          <div class="nav-left">
+            <button class="back-btn" aria-label="返回">‹</button>
+            <div class="coin-pill">
+              <span class="coin-icon">泡</span>
+              <span id="coinBalance">0</span>
+            </div>
+            <span class="today-review-tip" id="todayReviewTip">今日已评0本</span>
+          </div>
+          <button class="rules-btn">规则</button>
+        </div>
+
+        <section class="hero">
+          <div class="hero-art">
+            <div class="float-bubble b1">5<small>签到</small></div>
+            <div class="float-bubble b2">10<small>阅读30章<br/>6/30</small></div>
+            <div class="book-stage"></div>
+          </div>
+          <button class="claim-btn">点我领泡泡</button>
+          <div class="side-actions">
+            <button class="side-action"><span class="ico">🎁</span>兑福利</button>
+            <button class="side-action"><span class="ico">⏰</span>时段奖励</button>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title">连续签到开宝箱 持之以恒赢好礼</div>
+          <div class="checkin-row">
+            <div class="checkin-day"><div class="checkin-box">🪙<br/>+5</div>第1天</div>
+            <div class="checkin-day"><div class="checkin-box">🪙<br/>+5</div>第2天</div>
+            <div class="checkin-day"><div class="checkin-box">🪙<br/>+5</div>第3天</div>
+            <div class="checkin-day"><div class="checkin-box chest">🧰<button class="chest-btn">开宝箱</button></div>第4天</div>
+            <div class="checkin-day"><div class="checkin-box">🪙<br/>+5</div>第5天</div>
+            <div class="checkin-day"><div class="checkin-box">🪙<br/>+5</div>第6天</div>
+            <div class="checkin-day"><div class="checkin-box chest">🧰<button class="chest-btn">开宝箱</button></div>第7天</div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-title">活跃赢泡泡 多得 <span>35</span> 泡泡币</div>
+          <div class="milestone">
+            <div class="milestone-node"><strong>+5</strong>完成3个</div>
+            <div class="milestone-track"><div class="milestone-fill"></div></div>
+            <div class="milestone-node"><strong>+10</strong>完成6个</div>
+            <div class="milestone-track"><div class="milestone-fill"></div></div>
+            <div class="milestone-node"><strong>+20</strong>完成9个</div>
+          </div>
+
+          <div class="task-list">
+            <div class="task-card" id="reviewTaskCard">
+              <div class="task-icon blue">📚</div>
+              <div class="task-body">
+                <div class="task-top">
+                  <div class="task-name">书籍评审官</div>
+                  <div class="task-reward"><span class="mini-coin">泡</span>+3</div>
+                </div>
+                <div class="task-desc">评审单本书籍可得3泡泡币 最高可得30泡泡币</div>
+                <div class="task-progress-row">
+                  <div class="task-progress"><span id="reviewProgressBar" style="width:0%"></span></div>
+                  <div class="task-progress-text" id="reviewProgressText">0/10 已完成</div>
+                </div>
+              </div>
+              <a class="go-btn" href="./reader.html">去完成</a>
+            </div>
+
+            <div class="task-card">
+              <div class="task-icon orange">📅</div>
+              <div class="task-body">
+                <div class="task-top">
+                  <div class="task-name">老友相会</div>
+                  <div class="task-reward"><span class="mini-coin">泡</span>+5</div>
+                </div>
+                <div class="task-desc">每日签到</div>
+                <div class="task-progress-row">
+                  <div class="task-progress"><span style="width:0%"></span></div>
+                  <div class="task-progress-text">0/1 已完成</div>
+                </div>
+              </div>
+              <a class="go-btn" href="javascript:void(0)">去完成</a>
+            </div>
+
+            <div class="task-card">
+              <div class="task-icon peach">🌸</div>
+              <div class="task-body">
+                <div class="task-top">
+                  <div class="task-name">手有余香</div>
+                  <div class="task-reward"><span class="mini-coin">泡</span>+5</div>
+                </div>
+                <div class="task-desc">累计送出 10 朵鲜花</div>
+                <div class="task-progress-row">
+                  <div class="task-progress"><span style="width:0%"></span></div>
+                  <div class="task-progress-text">0/10 已完成</div>
+                </div>
+              </div>
+              <a class="go-btn" href="javascript:void(0)">去完成</a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+
+  <aside class="dev-side">
+    <div class="dev-side-title">开发切换</div>
+    <a class="dev-link" href="./reader.html">进入评审页</a>
+    <a class="dev-link secondary" href="./admin.html">进入后台</a>
+  </aside>
+
+  <script src="./analytics.js"></script>
+  <script>
+    const now = new Date();
+    document.getElementById('statusTime').textContent =
+      `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    function updateReviewProgress() {
+      let todayCount = 0;
+      let totalCount = 0;
+
+      if (window.ReviewAnalytics) {
+        const data = ReviewAnalytics.getAnalytics();
+        totalCount = Math.min(data.summary.totalReviews || 0, 10);
+        // 仅统计今日已提交评价的本数；仅阅览未评价时为 0
+        const demoUser = (data.users || []).find((u) => u.userId === ReviewAnalytics.DEMO_USER_ID);
+        todayCount = demoUser ? (demoUser.dailyReviews || 0) : 0;
+        if (!demoUser && data.reviews && data.reviews.length) {
+          const today = new Date();
+          const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          todayCount = data.reviews.filter((r) => r.dateKey === key).length;
+        }
+      }
+
+      const pct = (totalCount / 10) * 100;
+      document.getElementById('reviewProgressBar').style.width = `${pct}%`;
+      document.getElementById('reviewProgressText').textContent = `${totalCount}/10 已完成`;
+      document.getElementById('coinBalance').textContent = String(totalCount * 3);
+      document.getElementById('todayReviewTip').textContent = `今日已评${todayCount}本`;
+    }
+
+    updateReviewProgress();
+  </script>
+</body>
+</html>

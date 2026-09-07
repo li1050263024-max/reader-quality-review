@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>评审后台</title>
+  <style>
+    :root {
+      --bg: #F1F5F9;
+      --card: #fff;
+      --text: #0F172A;
+      --muted: #64748B;
+      --line: #E2E8F0;
+      --primary: #2563EB;
+      --warn: #F97316;
+      --ok: #16A34A;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .top {
+      background: #0F172A;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .top h1 { font-size: 18px; font-weight: 700; }
+    .top-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .top a, .top button {
+      color: #fff;
+      text-decoration: none;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      cursor: pointer;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .stat .label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .stat .value { font-size: 22px; font-weight: 700; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .panel h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: #EFF6FF;
+      border-color: #93C5FD;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #F1F5F9;
+      color: var(--muted);
+    }
+    .tag.warn { background: #FFF7ED; color: var(--warn); }
+    .tag.ok { background: #F0FDF4; color: var(--ok); }
+    .muted { color: var(--muted); }
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .bar-list { display: flex; flex-direction: column; gap: 8px; }
+    .bar-row { display: grid; grid-template-columns: 88px 1fr 52px; gap: 8px; align-items: center; }
+    .bar-track {
+      height: 8px;
+      background: #F1F5F9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #60A5FA, #2563EB);
+      border-radius: 999px;
+    }
+    .detail {
+      margin-top: 10px;
+      padding: 10px;
+      background: #F8FAFC;
+      border-radius: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .book-card + .book-card { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; }
+    .book-title { font-weight: 700; margin-bottom: 8px; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; font-size: 12px; color: var(--muted); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h1>读者评审后台</h1>
+    <div class="top-links">
+      <a href="./rewards.html">任务入口</a>
+      <a href="./reader.html">返回阅读页</a>
+      <button id="refreshBtn">刷新数据</button>
+      <button id="clearBtn">清空本地数据</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="cards" id="summaryCards"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="books">书籍评价</button>
+      <button class="tab" data-tab="users">用户行为</button>
+      <button class="tab" data-tab="reviews">评价明细</button>
+    </div>
+
+    <section class="panel" id="panelBooks">
+      <h2>书籍评价信息</h2>
+      <div id="booksContent"></div>
+    </section>
+
+    <section class="panel hidden" id="panelUsers">
+      <h2>用户行为</h2>
+      <div id="usersContent"></div>
+    </section>
+
+    <section class="panel hidden" id="panelReviews">
+      <h2>评价明细</h2>
+      <div id="reviewsContent"></div>
+    </section>
+  </div>
+
+  <script src="./analytics.js"></script>
+  <script>
+    function renderSummary(data) {
+      const s = data.summary;
+      const items = [
+        ['总评价数', s.totalReviews],
+        ['书籍数', s.totalBooks],
+        ['用户数', s.totalUsers],
+        ['综合均分', s.avgScore || '-'],
+        ['平均阅读时长', s.avgDuration ? `${s.avgDuration}s` : '-'],
+        ['时长不足率', s.tooFastRate],
+        ['阅读后收藏率', s.collectRate],
+        ['换书次数', s.skipCount],
+      ];
+      document.getElementById('summaryCards').innerHTML = items.map(([label, value]) => `
+        <div class="stat">
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderBooks(data) {
+      const el = document.getElementById('booksContent');
+      if (!data.books.length) {
+        el.innerHTML = '<div class="empty">暂无书籍评价。请先在阅读页完成几次评审。</div>';
+        return;
+      }
+
+      el.innerHTML = data.books.map((book) => {
+        const bars = Object.keys(data.q1Labels).map((key) => {
+          const count = book.q1Counts[key] || 0;
+          const percent = book.reviewCount ? (count / book.reviewCount) * 100 : 0;
+          return `
+            <div class="bar-row">
+              <span>${data.q1Labels[key]}</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${percent}%"></div></div>
+              <span>${book.q1Percents[key]}</span>
+            </div>`;
+        }).join('');
+
+        const durationList = book.reviews.map((r, i) =>
+          `#${i + 1} ${r.readSeconds}s${r.tooFast ? '·不足' : ''} / ${data.q1Labels[r.answers?.q1] || '-'}`
+        ).join('；');
+
+        return `
+          <div class="book-card">
+            <div class="book-title">${book.bookName || '未知书籍'} <span class="tag">ID ${book.bookId || '-'}</span></div>
+            <div class="meta-row">
+              <span>评价数：${book.reviewCount}</span>
+              <span>综合评分：${book.avgScore}</span>
+              <span>平均时长：${book.avgDuration}s</span>
+              <span>时长不足：${book.tooFastCount}</span>
+              <span>收藏率：${book.collectRate}</span>
+            </div>
+            <div class="bar-list">${bars}</div>
+            <div class="detail">各评价阅读时长：${durationList || '-'}</div>
+          </div>`;
+      }).join('');
+    }
+
+    function renderUsers(data) {
+      const el = document.getElementById('usersContent');
+      if (!data.users.length) {
+        el.innerHTML = '<div class="empty">暂无用户行为数据。</div>';
+        return;
+      }
+
+      el.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>用户</th>
+              <th>累计评审</th>
+              <th>单日评审</th>
+              <th>平均时长</th>
+              <th>平均评分</th>
+              <th>收藏率</th>
+              <th>时长不足</th>
+              <th>每本书评分 / 时长</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.users.map((u) => `
+              <tr>
+                <td>${u.userId}</td>
+                <td>${u.totalReviews}</td>
+                <td>${u.dailyReviews}</td>
+                <td>${u.avgDuration}s</td>
+                <td>${u.avgBookScore || '-'}</td>
+                <td>${u.collectRate}</td>
+                <td>${u.tooFastCount}</td>
+                <td>
+                  ${u.bookScores.map((b) =>
+                    `${b.bookName || b.bookId}：${b.score ?? '-'}分 / ${b.readSeconds}s${b.tooFast ? '（不足）' : ''}`
+                  ).join('<br/>')}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    function renderReviews(data) {
+      const el = document.getElementById('reviewsContent');
+      if (!data.reviews.length) {
+        el.innerHTML = '<div class="empty">暂无评价明细。</div>';
+        return;
+      }
+
+      const rows = [...data.reviews].reverse().map((r) => `
+        <tr>
+          <td>${new Date(r.createdAt).toLocaleString()}</td>
+          <td>${r.userId}</td>
+          <td>${r.bookName || r.bookId}</td>
+          <td>${data.q1Labels[r.answers?.q1] || '-'}</td>
+          <td>${r.q1Score ?? '-'}</td>
+          <td>${r.readSeconds}s ${r.tooFast ? '<span class="tag warn">时长不足</span>' : '<span class="tag ok">正常</span>'}</td>
+          <td>${r.collected ? '是' : (r.answers?.collect === false ? '否' : '未选')}</td>
+          <td class="muted">${(r.answers?.q2 || []).join('、') || '-'}${r.answers?.q2Custom ? `<br/><span style="color:#64748B">补充：${r.answers.q2Custom}</span>` : ''}</td>
+          <td class="muted">${(r.answers?.q3 || []).join('、') || '-'}${r.answers?.q3Custom ? `<br/><span style="color:#64748B">补充：${r.answers.q3Custom}</span>` : ''}</td>
+        </tr>
+      `).join('');
+
+      el.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>用户</th>
+              <th>书籍</th>
+              <th>整体评价</th>
+              <th>评分</th>
+              <th>阅读时长</th>
+              <th>收藏</th>
+              <th>优点</th>
+              <th>问题</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function renderAll() {
+      const data = ReviewAnalytics.getAnalytics();
+      renderSummary(data);
+      renderBooks(data);
+      renderUsers(data);
+      renderReviews(data);
+    }
+
+    document.querySelectorAll('.tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        const name = tab.dataset.tab;
+        document.getElementById('panelBooks').classList.toggle('hidden', name !== 'books');
+        document.getElementById('panelUsers').classList.toggle('hidden', name !== 'users');
+        document.getElementById('panelReviews').classList.toggle('hidden', name !== 'reviews');
+      });
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', renderAll);
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (confirm('确定清空本地评审数据？')) {
+        ReviewAnalytics.clearAll();
+        renderAll();
+      }
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
