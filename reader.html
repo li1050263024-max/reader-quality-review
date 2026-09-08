@@ -1220,11 +1220,7 @@
         </div>
       </div>
 
-      <!-- 测试：跳过阅读时长门槛 -->
-      <button type="button" class="test-fab" id="skipTimeBtn" aria-label="跳过时长">
-        <span class="test-fab-dot"></span>
-        <span>跳过时长</span>
-      </button>
+      </div>
     </div>
   </div>
 
@@ -2048,7 +2044,6 @@
       });
     });
 
-    document.getElementById('skipTimeBtn')?.addEventListener('click', skipReadTimeForTest);
     document.getElementById('skipTimeBtnSide')?.addEventListener('click', skipReadTimeForTest);
 
     loadChapterByIndex(0)
