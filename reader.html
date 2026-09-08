@@ -360,15 +360,7 @@
     }
 
     .comment-dot {
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: rgba(130, 140, 150, 0.4);
-      cursor: pointer;
+      display: none !important;
     }
 
     .hot-comment {
@@ -1262,6 +1254,28 @@
         </div>
       </div>
 
+      <!-- 无可分发书籍 -->
+      <div class="modal-mask" id="noBookModal">
+        <div class="modal-box">
+          <div class="modal-title">暂无可分发书籍</div>
+          <div class="modal-desc">请明天再来吧~</div>
+          <div class="modal-actions">
+            <button class="modal-btn primary" id="noBookOkBtn">我知道了</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日评审上限 -->
+      <div class="modal-mask" id="dailyLimitModal">
+        <div class="modal-box">
+          <div class="modal-title">您今天已经评审多次</div>
+          <div class="modal-desc">请明天再来吧~</div>
+          <div class="modal-actions">
+            <button class="modal-btn primary" id="dailyLimitOkBtn">我知道了</button>
+          </div>
+        </div>
+      </div>
+
       </div>
     </div>
   </div>
@@ -1282,6 +1296,8 @@
 
     <div class="dev-side-title">快捷测试</div>
     <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长（视为已达标）</button>
+    <button type="button" class="dev-link secondary" id="testNoBookBtn">空态：暂无可分发书籍</button>
+    <button type="button" class="dev-link secondary" id="testDailyLimitBtn">空态：今日评审上限</button>
   </aside>
 
   <script src="./chapters-data.js"></script>
@@ -1602,12 +1618,6 @@
         textEl.textContent = para.content;
 
         block.appendChild(textEl);
-
-        const dot = document.createElement('span');
-        dot.className = 'comment-dot';
-        dot.title = '段评';
-        block.appendChild(dot);
-
         content.appendChild(block);
       });
 
@@ -2170,6 +2180,10 @@
     });
 
     document.getElementById('skipTimeBtnSide')?.addEventListener('click', skipReadTimeForTest);
+    document.getElementById('testNoBookBtn')?.addEventListener('click', () => showModal('noBookModal'));
+    document.getElementById('testDailyLimitBtn')?.addEventListener('click', () => showModal('dailyLimitModal'));
+    document.getElementById('noBookOkBtn')?.addEventListener('click', () => hideModal('noBookModal'));
+    document.getElementById('dailyLimitOkBtn')?.addEventListener('click', () => hideModal('dailyLimitModal'));
     document.querySelectorAll('.dev-test-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         applyTestTier(Number(btn.dataset.chars));
