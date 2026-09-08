@@ -1223,7 +1223,7 @@
       <!-- 手机端：时长测试入口 + 小面板 -->
       <button type="button" class="test-fab" id="testFab" aria-label="时长测试">
         <span class="test-fab-dot"></span>
-        <span id="testFabLabel">测试 · 7000字/40s</span>
+        <span id="testFabLabel">测试 · 7000字/55s</span>
       </button>
       <div class="test-panel-mask" id="testPanelMask">
         <div class="test-panel" id="testPanel" role="dialog" aria-label="时长测试">
@@ -1234,25 +1234,25 @@
           <div class="dev-group">
             <div class="dev-group-title">5000 字</div>
             <div class="test-panel-grid">
-              <button class="dev-test-btn" data-chars="5000" data-seconds="25">25秒</button>
               <button class="dev-test-btn" data-chars="5000" data-seconds="30">30秒</button>
+              <button class="dev-test-btn" data-chars="5000" data-seconds="40">40秒</button>
             </div>
           </div>
           <div class="dev-group">
             <div class="dev-group-title">7000 字</div>
             <div class="test-panel-grid">
-              <button class="dev-test-btn" data-chars="7000" data-seconds="30">30秒</button>
-              <button class="dev-test-btn active" data-chars="7000" data-seconds="40">40秒</button>
+              <button class="dev-test-btn" data-chars="7000" data-seconds="40">40秒</button>
+              <button class="dev-test-btn active" data-chars="7000" data-seconds="55">55秒</button>
             </div>
           </div>
           <div class="dev-group">
             <div class="dev-group-title">10000 字</div>
             <div class="test-panel-grid">
-              <button class="dev-test-btn" data-chars="10000" data-seconds="50">50秒</button>
               <button class="dev-test-btn" data-chars="10000" data-seconds="60">60秒</button>
+              <button class="dev-test-btn" data-chars="10000" data-seconds="80">80秒</button>
             </div>
           </div>
-          <p class="test-panel-hint">选择后会截断正文并重置计时</p>
+          <p class="test-panel-hint">正式档：5千40秒 / 7千55秒 / 1万80秒（仅滑动计时）</p>
         </div>
       </div>
     </div>
@@ -1267,18 +1267,18 @@
     <div class="dev-side-title">时长测试</div>
     <div class="dev-group">
       <div class="dev-group-title">5000 字</div>
-      <button class="dev-test-btn" data-chars="5000" data-seconds="25">5000字 · 25秒</button>
       <button class="dev-test-btn" data-chars="5000" data-seconds="30">5000字 · 30秒</button>
+      <button class="dev-test-btn" data-chars="5000" data-seconds="40">5000字 · 40秒</button>
     </div>
     <div class="dev-group">
       <div class="dev-group-title">7000 字</div>
-      <button class="dev-test-btn" data-chars="7000" data-seconds="30">7000字 · 30秒</button>
-      <button class="dev-test-btn active" data-chars="7000" data-seconds="40">7000字 · 40秒</button>
+      <button class="dev-test-btn" data-chars="7000" data-seconds="40">7000字 · 40秒</button>
+      <button class="dev-test-btn active" data-chars="7000" data-seconds="55">7000字 · 55秒</button>
     </div>
     <div class="dev-group">
       <div class="dev-group-title">10000 字</div>
-      <button class="dev-test-btn" data-chars="10000" data-seconds="50">10000字 · 50秒</button>
       <button class="dev-test-btn" data-chars="10000" data-seconds="60">10000字 · 60秒</button>
+      <button class="dev-test-btn" data-chars="10000" data-seconds="80">10000字 · 80秒</button>
     </div>
   </aside>
 
@@ -1295,7 +1295,7 @@
       tooFast: false,
       lengthBucket: 7000,
       // 外部测试：字数截断 + 强制时长
-      testConfig: { chars: 7000, minSeconds: 40 },
+      testConfig: { chars: 7000, minSeconds: 55 },
       // 仅滑动时累计
       activeMs: 0,
       lastScrollAt: 0,
@@ -1317,9 +1317,9 @@
         return chapterState.testConfig.minSeconds;
       }
       const bucket = getLengthBucket(chapterState.displayChars || 0);
-      if (bucket <= 5000) return 30;
-      if (bucket <= 7000) return 40;
-      return 60;
+      if (bucket <= 5000) return 40;
+      if (bucket <= 7000) return 55;
+      return 80;
     }
 
     function paragraphsFromRaw(rawText, maxChars) {
@@ -1675,24 +1675,20 @@
       },
       q2: {
         id: 'q2',
-        title: '这本书有哪些优点？',
+        title: '你认为这本书有哪些优点？',
         type: 'multi',
         options: [
-          '剧情精彩', '剧情有新意', '节奏舒服', '人物鲜活', '人物讨喜',
-          '人物有代入感', '文笔流畅', '描写生动', '对话自然', '内容紧凑',
-          '情绪到位', '很有吸引力', '越看越想看', '整体完成度高', '没有明显问题',
-          '其他',
+          '剧情精彩', '节奏舒服', '人物鲜活', '文笔流畅', '对话自然',
+          '很有吸引力', '越看越想看', '整体完成度高', '没有明显问题', '其他',
         ].map((label) => ({ value: label, label })),
       },
       q3: {
         id: 'q3',
-        title: '可以改进的地方？',
+        title: '你认为这本书有哪些缺点？',
         type: 'multi',
         options: [
-          '剧情拖沓', '剧情老套', '剧情重复', '剧情不太合理', '逻辑不够清晰',
-          '前后不一致', '人物不够鲜明', '人物表现不自然', '人设前后不一致', '对话不够自然',
-          '文笔不够流畅', '语言比较啰嗦', '内容重复', '内容不够充实', '有凑字数的感觉',
-          '节奏混乱', '没有代入感', '阅读兴趣不高', '其他',
+          '剧情重复', '内容拖沓', '逻辑混乱', '人物单薄', '对话生硬',
+          '文笔不佳', '语言啰嗦', '有水文，凑字数现象', '题材老套无聊', '其他',
         ].map((label) => ({ value: label, label })),
       },
       q4: {
@@ -1738,7 +1734,7 @@
     function getStepFlow(q1Value) {
       const flow = ['q1'];
       const score = getOptionScore('q1', q1Value);
-      // 5/4/3 星 → 优点；3/2/1 星 → 可改进；3 星两者都填
+      // 3星及以上 → 优点；3星及以下 → 缺点；3星两者都填
       if (score != null && score >= 3) flow.push('q2');
       if (score != null && score <= 3) flow.push('q3');
       flow.push('q4', 'q5', 'reward');
@@ -1873,7 +1869,7 @@
       const customPlaceholder = q.id === 'q2'
         ? '请填写其他优点'
         : q.id === 'q3'
-          ? '请填写其他可改进的地方'
+          ? '请填写其他缺点'
           : '';
       const customHtml = showOther
         ? `<div class="custom-feedback">
@@ -1936,7 +1932,7 @@
       if (a.q3.length) {
         const q3Show = a.q3.filter((x) => x !== '其他');
         const q3Text = [...q3Show, ...(a.q3Custom ? [`其他：${a.q3Custom}`] : [])].join('、');
-        if (q3Text) rows += `<div class="result-row"><span class="result-label">可改进</span><span class="result-value">${q3Text}</span></div>`;
+        if (q3Text) rows += `<div class="result-row"><span class="result-label">缺点</span><span class="result-value">${q3Text}</span></div>`;
       }
       rows += `
         <div class="result-row"><span class="result-label">继续阅读意愿</span><span class="result-value">${q4Label}</span></div>

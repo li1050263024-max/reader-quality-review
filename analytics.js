@@ -4,12 +4,12 @@
  */
 (function (global) {
   const STORAGE_KEY = 'review-analytics-v1';
-  const MIN_READ_SECONDS = 45; // 默认按 7000 字档；实际按字数动态计算
+  const MIN_READ_SECONDS = 55; // 默认按 7000 字档；实际按字数动态计算
 
   function getMinReadSecondsByChars(chars) {
-    if (chars <= 5500) return 30;
-    if (chars <= 8500) return 45;
-    return 70;
+    if (chars <= 5500) return 40;
+    if (chars <= 8500) return 55;
+    return 80;
   }
   const DEMO_USER_ID = 'demo-user-001';
 
