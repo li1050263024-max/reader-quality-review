@@ -1081,11 +1081,35 @@
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
-    .reason-item:last-child { margin-bottom: 0; }
+    .reason-item.selected {
+      border-color: #3B82F6;
+      background: #EFF6FF;
+    }
     .reason-item:active {
       border-color: #3B82F6;
       background: #EFF6FF;
     }
+
+    .skip-custom-wrap {
+      display: none;
+      width: 100%;
+      margin: 0 0 10px;
+    }
+    .skip-custom-wrap.show { display: block; }
+    .skip-custom-input {
+      width: 100%;
+      min-height: 72px;
+      padding: 10px 12px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #333;
+      resize: none;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .skip-custom-input:focus { border-color: #3B82F6; }
 
     .collect-ask {
       margin: 8px 0 18px;
@@ -1209,9 +1233,14 @@
           <div class="modal-title">选择换书原因</div>
           <div class="modal-desc">选择后将跳过本书，进入下一本评审</div>
           <div class="modal-actions column">
-            <button class="reason-item" data-reason="质量不佳">质量不佳</button>
-            <button class="reason-item" data-reason="不感兴趣">不感兴趣</button>
-            <button class="modal-btn secondary" id="skipCancelBtn" style="margin-top:12px">取消</button>
+            <button type="button" class="reason-item" data-reason="质量不佳">质量不佳</button>
+            <button type="button" class="reason-item" data-reason="不感兴趣">不感兴趣</button>
+            <button type="button" class="reason-item" id="reasonOtherBtn" data-reason="其他">其他</button>
+            <div class="skip-custom-wrap" id="skipCustomWrap">
+              <textarea class="skip-custom-input" id="skipCustomInput" maxlength="100" placeholder="请填写换书原因"></textarea>
+              <button type="button" class="modal-btn primary" id="skipCustomConfirm">确认换书</button>
+            </div>
+            <button type="button" class="modal-btn secondary" id="skipCancelBtn">取消</button>
           </div>
         </div>
       </div>
@@ -1501,7 +1530,15 @@
       updateTopMeta();
     }
 
+    function resetSkipModal() {
+      document.getElementById('skipCustomWrap')?.classList.remove('show');
+      const input = document.getElementById('skipCustomInput');
+      if (input) input.value = '';
+      document.querySelectorAll('.reason-item').forEach((btn) => btn.classList.remove('selected'));
+    }
+
     function showModal(id) {
+      if (id === 'skipModal') resetSkipModal();
       document.getElementById(id).classList.add('show');
     }
 
@@ -1866,7 +1903,7 @@
           <div class="reward-card">
             <div class="reward-icon-big">🎁</div>
             <div class="reward-title">评审奖励到账</div>
-            <div class="reward-amount">+10 泡泡币</div>
+            <div class="reward-amount">+5 泡泡币</div>
             <div class="reward-desc">感谢你的认真评审，奖励已发放至账户</div>
             <div class="collect-ask">
               <div class="collect-ask-title">是否收藏本书？</div>
@@ -2104,8 +2141,26 @@
 
     document.querySelectorAll('.reason-item').forEach((btn) => {
       btn.addEventListener('click', () => {
-        skipToNextChapter(btn.dataset.reason);
+        const reason = btn.dataset.reason;
+        document.querySelectorAll('.reason-item').forEach((b) => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if (reason === '其他') {
+          document.getElementById('skipCustomWrap')?.classList.add('show');
+          document.getElementById('skipCustomInput')?.focus();
+          return;
+        }
+        document.getElementById('skipCustomWrap')?.classList.remove('show');
+        skipToNextChapter(reason);
       });
+    });
+
+    document.getElementById('skipCustomConfirm')?.addEventListener('click', () => {
+      const text = (document.getElementById('skipCustomInput')?.value || '').trim();
+      if (!text) {
+        alert('请填写换书原因');
+        return;
+      }
+      skipToNextChapter(`其他：${text}`);
     });
 
     document.getElementById('skipTimeBtnSide')?.addEventListener('click', skipReadTimeForTest);
