@@ -534,10 +534,13 @@
     .review-section .section-title {
       margin-bottom: 10px;
     }
+    /* 去掉任务内框，与外层分区一体展示 */
     .review-task-card {
-      border: none;
-      background: #fff;
-      box-shadow: none;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0;
+      border-radius: 0;
     }
 
     .home-indicator {
@@ -722,7 +725,6 @@
     <div class="dev-side-title">入口空态测试</div>
     <button type="button" class="dev-link" id="entryNormalBtn">正常可评审</button>
     <button type="button" class="dev-link secondary" id="entryEmptyBtn">空态：书库已空</button>
-    <button type="button" class="dev-link secondary" id="entryLimitBtn">空态：今日上限</button>
   </aside>
 
   <script src="./analytics.js"></script>
@@ -732,18 +734,24 @@
       `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
     const ENTRY_STATE_KEY = 'review-entry-state';
+    const NORMAL_DESC = '评审单本书籍可得5泡泡币 最高可得50泡泡币';
+    const EMPTY_DESC = '今天书库已经空啦，明天再来吧~';
 
     function setEntryState(state) {
-      localStorage.setItem(ENTRY_STATE_KEY, state);
-      renderEntryState(state);
+      // 仅「书库已空」改变入口；今日上限与正常一致
+      const next = state === 'empty' ? 'empty' : 'normal';
+      localStorage.setItem(ENTRY_STATE_KEY, next);
+      renderEntryState(next);
     }
 
     function renderEntryState(state = localStorage.getItem(ENTRY_STATE_KEY) || 'normal') {
       const desc = document.getElementById('reviewTaskDesc');
       const goBtn = document.getElementById('reviewGoBtn');
+      // 兼容旧的 limit 缓存：按正常可进入处理
+      if (state === 'limit') state = 'normal';
 
       if (state === 'empty') {
-        desc.textContent = '今天书库已经空啦，明天再来吧~';
+        desc.textContent = EMPTY_DESC;
         goBtn.classList.add('disabled');
         goBtn.removeAttribute('href');
         goBtn.setAttribute('aria-disabled', 'true');
@@ -751,16 +759,7 @@
         return;
       }
 
-      if (state === 'limit') {
-        desc.textContent = '您今天已经评审多次，请明天再来吧~';
-        goBtn.classList.add('disabled');
-        goBtn.removeAttribute('href');
-        goBtn.setAttribute('aria-disabled', 'true');
-        goBtn.textContent = '去完成';
-        return;
-      }
-
-      desc.textContent = '评审单本书籍可得5泡泡币 最高可得50泡泡币';
+      desc.textContent = NORMAL_DESC;
       goBtn.classList.remove('disabled');
       goBtn.removeAttribute('aria-disabled');
       goBtn.setAttribute('href', './reader.html');
@@ -792,7 +791,6 @@
 
     document.getElementById('entryNormalBtn')?.addEventListener('click', () => setEntryState('normal'));
     document.getElementById('entryEmptyBtn')?.addEventListener('click', () => setEntryState('empty'));
-    document.getElementById('entryLimitBtn')?.addEventListener('click', () => setEntryState('limit'));
 
     updateReviewProgress();
     renderEntryState();
