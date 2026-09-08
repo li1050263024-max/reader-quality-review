@@ -44,6 +44,13 @@
       font-weight: 600;
     }
 
+    .dev-side-note {
+      font-size: 11px;
+      color: #94A3B8;
+      line-height: 1.4;
+      margin: -4px 0 0;
+    }
+
     .dev-group {
       background: #fff;
       border: 1px solid #E2E8F0;
@@ -1230,8 +1237,16 @@
     <a class="dev-link secondary" href="./rewards.html">返回任务入口</a>
     <a class="dev-link secondary" href="./reader.html">刷新阅读页</a>
 
-    <div class="dev-side-title">测试</div>
-    <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长</button>
+    <div class="dev-side-title">字数档位测试</div>
+    <p class="dev-side-note">正式门槛：仅滑动计时</p>
+    <div class="dev-group">
+      <button type="button" class="dev-test-btn" data-chars="5000" data-seconds="40">5000 字 → 40 秒</button>
+      <button type="button" class="dev-test-btn active" data-chars="7000" data-seconds="55">7000 字 → 55 秒</button>
+      <button type="button" class="dev-test-btn" data-chars="10000" data-seconds="80">10000 字 → 80 秒</button>
+    </div>
+
+    <div class="dev-side-title">快捷测试</div>
+    <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长（视为已达标）</button>
   </aside>
 
   <script src="./chapters-data.js"></script>
@@ -1246,6 +1261,8 @@
       readSeconds: 0,
       tooFast: false,
       lengthBucket: 7000,
+      // 测试：当前字数档位（影响截断与门槛时长）
+      testConfig: { chars: 7000, minSeconds: 55 },
       // 仅滑动时累计
       activeMs: 0,
       lastScrollAt: 0,
@@ -1256,6 +1273,12 @@
       fastWarnShown: false,
     };
 
+    const READ_TIME_BY_CHARS = {
+      5000: 40,
+      7000: 55,
+      10000: 80,
+    };
+
     function getLengthBucket(chars) {
       if (chars <= 5500) return 5000;
       if (chars <= 8500) return 7000;
@@ -1263,10 +1286,50 @@
     }
 
     function getMinReadSeconds() {
+      if (chapterState.testConfig && chapterState.testConfig.minSeconds) {
+        return chapterState.testConfig.minSeconds;
+      }
       const bucket = getLengthBucket(chapterState.displayChars || 0);
-      if (bucket <= 5000) return 40;
-      if (bucket <= 7000) return 55;
-      return 80;
+      return READ_TIME_BY_CHARS[bucket] || 55;
+    }
+
+    function paragraphsFromRaw(rawText, maxChars) {
+      const content = truncateLatestContent(rawText || '', maxChars);
+      return content
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((text, index) => ({ id: index + 1, content: text }));
+    }
+
+    function applyContentTruncate(data, maxChars) {
+      const raw = data.rawContent
+        || (data.paragraphs || []).map((p) => p.content).join('\n');
+      const paragraphs = paragraphsFromRaw(raw, maxChars);
+      const displayChars = paragraphs.reduce((sum, p) => sum + p.content.length, 0);
+      return {
+        ...data,
+        rawContent: raw,
+        paragraphs,
+        displayChars,
+        lengthBucket: maxChars,
+      };
+    }
+
+    function applyTestTier(chars) {
+      const minSeconds = READ_TIME_BY_CHARS[chars] || 55;
+      chapterState.testConfig = { chars, minSeconds };
+      document.querySelectorAll('.dev-test-btn').forEach((btn) => {
+        btn.classList.toggle('active', Number(btn.dataset.chars) === chars);
+      });
+      loadChapterData(chapterState.index).then((data) => {
+        renderChapter(applyContentTruncate(data, chars));
+        document.getElementById('content').scrollTop = 0;
+        closeSurvey();
+      }).catch((err) => {
+        document.getElementById('content').innerHTML =
+          `<div class="loading">${err.message}</div>`;
+      });
     }
 
     /** 测试用：直接视为时长已达标，不改正文与其它前端逻辑 */
@@ -1412,7 +1475,8 @@
       chapterState.index = index;
       resetSurveyState();
       return loadChapterData(index).then((data) => {
-        renderChapter(data);
+        const chars = (chapterState.testConfig && chapterState.testConfig.chars) || 7000;
+        renderChapter(applyContentTruncate(data, chars));
         document.getElementById('content').scrollTop = 0;
       });
     }
@@ -2045,6 +2109,11 @@
     });
 
     document.getElementById('skipTimeBtnSide')?.addEventListener('click', skipReadTimeForTest);
+    document.querySelectorAll('.dev-test-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        applyTestTier(Number(btn.dataset.chars));
+      });
+    });
 
     loadChapterByIndex(0)
       .catch((err) => {
