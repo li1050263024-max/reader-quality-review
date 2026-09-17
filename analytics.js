@@ -77,6 +77,7 @@
       q5Score: payload.answers?.scores?.q5 ?? null,
       collected: payload.answers?.collect === true,
       collectSkipped: payload.answers?.collect == null,
+      rewardGranted: payload.rewardGranted !== false,
       createdAt: new Date().toISOString(),
       dateKey: todayKey(),
     };

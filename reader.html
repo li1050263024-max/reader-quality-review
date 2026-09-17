@@ -436,7 +436,8 @@
         justify-content: stretch;
         min-height: 100dvh;
       }
-      .dev-side { display: none !important; }
+      .dev-side,
+      .ext-test-panel { display: none !important; }
       .iphone15 {
         width: 100%;
         height: 100dvh;
@@ -925,6 +926,11 @@
       box-shadow: 0 4px 16px rgba(255, 180, 60, 0.4);
     }
 
+    .reward-icon-big.thanks {
+      background: linear-gradient(135deg, #DBEAFE 0%, #93C5FD 100%);
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.28);
+    }
+
     .reward-title {
       font-size: 20px;
       font-weight: 700;
@@ -939,10 +945,106 @@
       margin-bottom: 6px;
     }
 
+    .reward-amount.hidden {
+      display: none;
+    }
+
     .reward-desc {
       font-size: 14px;
       color: #888;
       margin-bottom: 24px;
+    }
+
+    .reward-card.is-thanks .reward-desc {
+      margin-bottom: 20px;
+      font-size: 15px;
+      color: #64748B;
+    }
+
+    .reward-limit-tip {
+      display: none;
+    }
+
+    .collect-ask {
+      margin: 8px 0 18px;
+      padding: 14px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      text-align: center;
+    }
+
+    .collect-ask-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .collect-ask-actions {
+      display: flex;
+      justify-content: center;
+    }
+
+    .collect-ask-actions .modal-btn {
+      min-width: 140px;
+      padding: 10px 28px;
+      font-size: 14px;
+    }
+
+    .collect-ask-actions .modal-btn.selected {
+      background: #3B82F6;
+      color: #fff;
+      border-color: #3B82F6;
+    }
+
+    .collect-status {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #3B82F6;
+      min-height: 18px;
+    }
+
+    .ext-test-panel {
+      width: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ext-test-title {
+      font-size: 13px;
+      color: #64748B;
+      font-weight: 600;
+    }
+    .ext-test-btn {
+      display: block;
+      width: 100%;
+      padding: 14px 12px;
+      border-radius: 12px;
+      border: 1px solid #93C5FD;
+      background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+      color: #1D4ED8;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+    }
+    .ext-test-btn.reward {
+      border-color: #FDBA74;
+      background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+      color: #C2410C;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.15);
+    }
+    .ext-test-btn:hover {
+      filter: brightness(0.98);
+    }
+    .ext-test-note {
+      font-size: 11px;
+      color: #94A3B8;
+      line-height: 1.45;
     }
 
     .reward-actions {
@@ -1109,47 +1211,6 @@
       flex: none;
     }
 
-    .collect-ask {
-      margin: 8px 0 18px;
-      padding: 14px;
-      background: #fff;
-      border-radius: 12px;
-      border: 1px solid #E5E7EB;
-      text-align: left;
-    }
-
-    .collect-ask-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .collect-ask-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .collect-ask-actions .modal-btn {
-      padding: 10px;
-      font-size: 14px;
-    }
-
-    .collect-ask-actions .modal-btn.selected {
-      background: #3B82F6;
-      color: #fff;
-      border-color: #3B82F6;
-    }
-
-    .collect-status {
-      margin-top: 8px;
-      text-align: center;
-      font-size: 12px;
-      color: #3B82F6;
-      min-height: 18px;
-    }
-
     .read-meta {
       text-align: center;
       font-size: 12px;
@@ -1159,6 +1220,13 @@
   </style>
 </head>
 <body>
+  <aside class="ext-test-panel">
+    <div class="ext-test-title">完成页测试</div>
+    <button type="button" class="ext-test-btn reward" id="testRewardReviewBtn">正常完成 · 奖励到账</button>
+    <button type="button" class="ext-test-btn" id="testThanksReviewBtn">第11本 · 感谢评审</button>
+    <p class="ext-test-note">左侧两个按钮可分别预览「有奖励」和「无奖励」完成页，不影响正式计数逻辑。</p>
+  </aside>
+
   <div class="iphone15">
     <div class="iphone15-screen">
       <div class="dynamic-island"></div>
@@ -1330,6 +1398,9 @@
       10000: 80,
     };
 
+    /** 当日前 10 本发评审奖励；第 11 本起仍可评审/收藏，仅改为感谢评审 */
+    const DAILY_REWARD_LIMIT = 10;
+
     function getLengthBucket(chars) {
       if (chars <= 5500) return 5000;
       if (chars <= 8500) return 7000;
@@ -1407,6 +1478,42 @@
       const today = new Date();
       const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       return (data.reviews || []).filter((r) => r.dateKey === key).length;
+    }
+
+    /** 提交本本前：今日已有效评价 < 10 → 发奖励；否则感谢评审（仍可收藏） */
+    function shouldGrantReward() {
+      if (surveyState.forceRewardReview) return true;
+      if (surveyState.forceThanksReview) return false;
+      const count = getTodayReviewCount();
+      // 已落库时 count 含本本，用 count-1 判断是否仍在前 10 本奖励额度内
+      const priorCount = surveyState.saved ? Math.max(0, count - 1) : count;
+      return priorCount < DAILY_REWARD_LIMIT;
+    }
+
+    function openCompletionPreview(grantReward) {
+      surveyState.forceRewardReview = !!grantReward;
+      surveyState.forceThanksReview = !grantReward;
+      surveyState.lastRewardGranted = !!grantReward;
+      surveyState.answers = {
+        q1: 'star5',
+        q2: ['剧情精彩'],
+        q3: [],
+        q2Custom: '',
+        q3Custom: '',
+        q4: 'yes',
+        q5: 'none',
+        collect: null,
+      };
+      surveyState.steps = ['q1', 'q2', 'q4', 'q5', 'reward'];
+      surveyState.currentStep = surveyState.steps.length - 1;
+      surveyState.surveyShown = true;
+      surveyState.rewardCredited = true;
+      surveyState.saved = true; // 测试态不重复落库
+      chapterState.readSeconds = getMinReadSeconds();
+      chapterState.tooFast = false;
+      document.getElementById('drawerMask').classList.add('show');
+      document.getElementById('drawer').classList.add('show');
+      renderSurvey();
     }
 
     function updateTopMeta() {
@@ -1539,6 +1646,9 @@
       surveyState.surveyShown = false;
       surveyState.rewardCredited = false;
       surveyState.saved = false;
+      surveyState.forceThanksReview = false;
+      surveyState.forceRewardReview = false;
+      surveyState.lastRewardGranted = null;
       chapterState.readSeconds = 0;
       chapterState.tooFast = false;
       chapterState.activeMs = 0;
@@ -1744,6 +1854,9 @@
       surveyShown: false,
       rewardCredited: false,
       saved: false,
+      forceThanksReview: false,
+      forceRewardReview: false,
+      lastRewardGranted: null,
     };
 
     function getOptionScore(questionId, value) {
@@ -1791,6 +1904,7 @@
         q4: getOptionScore('q4', answers.q4),
         q5: getOptionScore('q5', answers.q5),
       };
+      const rewardGranted = shouldGrantReward();
       ReviewAnalytics.saveReview({
         bookId: current.bookId,
         bookName: current.bookName,
@@ -1799,9 +1913,11 @@
         readSeconds: chapterState.readSeconds,
         minReadSeconds: getMinReadSeconds(),
         tooFast: chapterState.tooFast,
+        rewardGranted,
         answers,
       });
       surveyState.saved = true;
+      surveyState.lastRewardGranted = rewardGranted;
     }
 
     function closeSurvey() {
@@ -1832,12 +1948,13 @@
 
       if (stepId === 'reward') {
         surveyState.rewardCredited = true;
-        // 到达奖励页时落库（收藏可后续更新：此处先存，收藏变更时再补写字段较复杂，改为提交奖励时存）
+        // 到达完成页时落库（收藏可后续更新）
         persistCurrentReview();
         cardsEl.innerHTML = renderRewardCard();
         cardsEl.style.transform = 'translateX(0)';
         nextBtn.style.display = 'none';
         bindRewardActions();
+        updateTopMeta();
         return;
       }
 
@@ -1909,11 +2026,36 @@
 
     function renderRewardCard() {
       const collect = surveyState.answers.collect;
-      const collectStatus = collect === true
-        ? '已加入收藏'
-        : collect === false
-          ? '已跳过收藏'
-          : '';
+      const collectStatus = collect === true ? '已加入收藏' : '';
+      const grantReward = surveyState.lastRewardGranted != null
+        ? surveyState.lastRewardGranted
+        : shouldGrantReward();
+
+      const collectBlock = `
+            <div class="collect-ask">
+              <div class="collect-ask-title">是否收藏本书？</div>
+              <div class="collect-ask-actions">
+                <button class="modal-btn secondary${collect === true ? ' selected' : ''}" id="btnCollectYes">收藏</button>
+              </div>
+              <div class="collect-status" id="collectStatus">${collectStatus}</div>
+            </div>`;
+
+      if (!grantReward) {
+        return `
+        <div class="survey-card">
+          <div class="reward-card is-thanks">
+            <div class="reward-icon-big thanks">🙏</div>
+            <div class="reward-title">感谢评审</div>
+            <div class="reward-desc">感谢您的认真反馈</div>
+            ${collectBlock}
+            <div class="reward-actions">
+              <button class="drawer-btn primary" id="btnContinue">继续评审</button>
+              <button class="drawer-btn secondary" id="btnResult">结束评审</button>
+            </div>
+          </div>
+        </div>`;
+      }
+
       return `
         <div class="survey-card">
           <div class="reward-card">
@@ -1921,14 +2063,7 @@
             <div class="reward-title">评审奖励到账</div>
             <div class="reward-amount">+5 泡泡币</div>
             <div class="reward-desc">感谢你的认真评审，奖励已发放至账户</div>
-            <div class="collect-ask">
-              <div class="collect-ask-title">是否收藏本书？</div>
-              <div class="collect-ask-actions">
-                <button class="modal-btn secondary${collect === true ? ' selected' : ''}" id="btnCollectYes">收藏</button>
-                <button class="modal-btn secondary${collect === false ? ' selected' : ''}" id="btnCollectNo">不收藏</button>
-              </div>
-              <div class="collect-status" id="collectStatus">${collectStatus}</div>
-            </div>
+            ${collectBlock}
             <div class="reward-actions">
               <button class="drawer-btn primary" id="btnContinue">继续评审</button>
               <button class="drawer-btn secondary" id="btnResult">结束评审</button>
@@ -1957,7 +2092,7 @@
       rows += `
         <div class="result-row"><span class="result-label">继续阅读意愿</span><span class="result-value">${q4Label}</span></div>
         <div class="result-row"><span class="result-label">AI 特征感受</span><span class="result-value">${q5Label}</span></div>
-        <div class="result-row"><span class="result-label">是否收藏</span><span class="result-value">${a.collect === true ? '已收藏' : a.collect === false ? '未收藏' : '未选择'}</span></div>
+        <div class="result-row"><span class="result-label">是否收藏</span><span class="result-value">${a.collect === true ? '已收藏' : '未收藏'}</span></div>
         <div class="result-row"><span class="result-label">阅读时长</span><span class="result-value">${chapterState.readSeconds}s${chapterState.tooFast ? '（不足已标记）' : ''}</span></div>`;
 
       return `
@@ -2081,13 +2216,11 @@
             localStorage.setItem('review-analytics-v1', JSON.stringify(store));
           }
         }
-        document.getElementById('collectStatus').textContent = value ? '已加入收藏' : '已跳过收藏';
-        document.getElementById('btnCollectYes').classList.toggle('selected', value === true);
-        document.getElementById('btnCollectNo').classList.toggle('selected', value === false);
+        document.getElementById('collectStatus').textContent = value ? '已加入收藏' : '';
+        document.getElementById('btnCollectYes')?.classList.toggle('selected', value === true);
       };
 
-      document.getElementById('btnCollectYes').addEventListener('click', () => markCollect(true));
-      document.getElementById('btnCollectNo').addEventListener('click', () => markCollect(false));
+      document.getElementById('btnCollectYes')?.addEventListener('click', () => markCollect(true));
 
       document.getElementById('btnContinue').addEventListener('click', () => {
         const nextIndex = chapterState.index + 1;
@@ -2184,6 +2317,12 @@
     document.getElementById('testDailyLimitBtn')?.addEventListener('click', () => showModal('dailyLimitModal'));
     document.getElementById('noBookOkBtn')?.addEventListener('click', () => hideModal('noBookModal'));
     document.getElementById('dailyLimitOkBtn')?.addEventListener('click', () => hideModal('dailyLimitModal'));
+    document.getElementById('testRewardReviewBtn')?.addEventListener('click', () => {
+      openCompletionPreview(true);
+    });
+    document.getElementById('testThanksReviewBtn')?.addEventListener('click', () => {
+      openCompletionPreview(false);
+    });
     document.querySelectorAll('.dev-test-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         applyTestTier(Number(btn.dataset.chars));
@@ -2191,6 +2330,14 @@
     });
 
     loadChapterByIndex(0)
+      .then(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.has('reward')) {
+          openCompletionPreview(true);
+        } else if (params.has('thanks')) {
+          openCompletionPreview(false);
+        }
+      })
       .catch((err) => {
         document.getElementById('content').innerHTML =
           `<div class="loading">${err.message}</div>`;
