@@ -1224,7 +1224,8 @@
     <div class="ext-test-title">完成页测试</div>
     <button type="button" class="ext-test-btn reward" id="testRewardReviewBtn">正常完成 · 奖励到账</button>
     <button type="button" class="ext-test-btn" id="testThanksReviewBtn">第11本 · 感谢评审</button>
-    <p class="ext-test-note">左侧两个按钮可分别预览「有奖励」和「无奖励」完成页，不影响正式计数逻辑。</p>
+    <button type="button" class="ext-test-btn" id="testCarelessBtn">敷衍作答提醒弹窗</button>
+    <p class="ext-test-note">左侧按钮可预览完成页与「认真评审」提醒弹窗。</p>
   </aside>
 
   <div class="iphone15">
@@ -1344,6 +1345,17 @@
         </div>
       </div>
 
+      <!-- 敷衍作答提醒 -->
+      <div class="modal-mask" id="carelessModal">
+        <div class="modal-box">
+          <div class="modal-title">请认真评审</div>
+          <div class="modal-desc" id="carelessModalDesc">检测到您可能存在敷衍作答行为。请认真阅读并独立作答，否则将限制您的评审资格。</div>
+          <div class="modal-actions">
+            <button class="modal-btn primary" id="carelessOkBtn">我知道了</button>
+          </div>
+        </div>
+      </div>
+
       </div>
     </div>
   </div>
@@ -1366,6 +1378,7 @@
     <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长（视为已达标）</button>
     <button type="button" class="dev-link secondary" id="testNoBookBtn">空态：暂无可分发书籍</button>
     <button type="button" class="dev-link secondary" id="testDailyLimitBtn">空态：今日评审上限</button>
+    <button type="button" class="dev-link secondary" id="testCarelessBtnSide">敷衍作答提醒弹窗</button>
   </aside>
 
   <script src="./chapters-data.js"></script>
@@ -1509,6 +1522,7 @@
       surveyState.surveyShown = true;
       surveyState.rewardCredited = true;
       surveyState.saved = true; // 测试态不重复落库
+      surveyState.carelessChecked = true; // 完成页预览不触发敷衍检测
       chapterState.readSeconds = getMinReadSeconds();
       chapterState.tooFast = false;
       document.getElementById('drawerMask').classList.add('show');
@@ -1649,6 +1663,8 @@
       surveyState.forceThanksReview = false;
       surveyState.forceRewardReview = false;
       surveyState.lastRewardGranted = null;
+      surveyState.carelessWarned = false;
+      surveyState.carelessChecked = false;
       chapterState.readSeconds = 0;
       chapterState.tooFast = false;
       chapterState.activeMs = 0;
@@ -1857,11 +1873,115 @@
       forceThanksReview: false,
       forceRewardReview: false,
       lastRewardGranted: null,
+      carelessWarned: false,
+      carelessChecked: false,
     };
+
+    const CARELESS_HISTORY_KEY = 'review-careless-history-v1';
 
     function getOptionScore(questionId, value) {
       const opt = SURVEY[questionId]?.options?.find((o) => o.value === value);
       return opt && typeof opt.score === 'number' ? opt.score : null;
+    }
+
+    function getAnswerPosition(questionId, answers = surveyState.answers) {
+      const q = SURVEY[questionId];
+      if (!q) return null;
+      if (q.type === 'single') {
+        const idx = q.options.findIndex((o) => o.value === answers[questionId]);
+        return idx >= 0 ? idx : null;
+      }
+      const selected = (answers[questionId] || []).slice();
+      if (!selected.length) return null;
+      // 多选：仅选 1 项时取该项位置；多项则无法视为「同一位置」
+      if (selected.length !== 1) return null;
+      const idx = q.options.findIndex((o) => o.value === selected[0]);
+      return idx >= 0 ? idx : null;
+    }
+
+    function getAnswerFingerprint(answers = surveyState.answers) {
+      const normMulti = (arr, custom) => {
+        const list = (arr || []).filter((v) => v !== '其他').slice().sort();
+        if ((arr || []).includes('其他')) list.push(`其他:${(custom || '').trim()}`);
+        return list.join('|');
+      };
+      return {
+        q1: answers.q1 || '',
+        q2: normMulti(answers.q2, answers.q2Custom),
+        q3: normMulti(answers.q3, answers.q3Custom),
+        q4: answers.q4 || '',
+        q5: answers.q5 || '',
+      };
+    }
+
+    function loadCarelessHistory() {
+      try {
+        const raw = localStorage.getItem(CARELESS_HISTORY_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveCarelessHistory(list) {
+      localStorage.setItem(CARELESS_HISTORY_KEY, JSON.stringify(list.slice(-10)));
+    }
+
+    /** 同一评价内：连续三个问题答案位置相同 */
+    function hasSamePositionInCurrentReview() {
+      const questionSteps = (surveyState.steps || []).filter((s) => s !== 'reward');
+      const positions = questionSteps.map((id) => getAnswerPosition(id));
+      for (let i = 0; i <= positions.length - 3; i += 1) {
+        const a = positions[i];
+        const b = positions[i + 1];
+        const c = positions[i + 2];
+        if (a != null && a === b && b === c) return true;
+      }
+      return false;
+    }
+
+    /** 连续三次评价：每个问题都选了同一个选项 */
+    function hasSameAnswersAcrossThreeReviews(nextFingerprint) {
+      const history = loadCarelessHistory();
+      const last3 = [...history.slice(-2), nextFingerprint];
+      if (last3.length < 3) return false;
+      const keys = ['q1', 'q2', 'q3', 'q4', 'q5'];
+      return keys.every((key) => last3.every((item) => item[key] === last3[0][key]));
+    }
+
+    function showCarelessWarning(reasonText) {
+      const desc = document.getElementById('carelessModalDesc');
+      if (desc) {
+        desc.textContent = reasonText
+          || '检测到您可能存在敷衍作答行为。请认真阅读并独立作答，否则将限制您的评审资格。';
+      }
+      showModal('carelessModal');
+    }
+
+    function evaluateCarelessPattern() {
+      const fingerprint = getAnswerFingerprint();
+      const samePosition = hasSamePositionInCurrentReview();
+      const sameAcross = hasSameAnswersAcrossThreeReviews(fingerprint);
+
+      // 先写入历史，再告警（便于连续三次命中）
+      const history = loadCarelessHistory();
+      history.push(fingerprint);
+      saveCarelessHistory(history);
+
+      if (surveyState.carelessWarned) {
+        return { warned: false, fingerprint, samePosition, sameAcross };
+      }
+
+      if (samePosition || sameAcross) {
+        surveyState.carelessWarned = true;
+        const reason = sameAcross
+          ? '检测到您连续三次评价中，每个问题都选择了相同选项。请认真评审，否则将限制您的评审资格。'
+          : '检测到您在同一次评价中，连续三个问题都选择了相同位置的选项。请认真评审，否则将限制您的评审资格。';
+        showCarelessWarning(reason);
+        return { warned: true, fingerprint, samePosition, sameAcross };
+      }
+      return { warned: false, fingerprint, samePosition, sameAcross };
     }
 
     function getStepFlow(q1Value) {
@@ -1948,6 +2068,10 @@
 
       if (stepId === 'reward') {
         surveyState.rewardCredited = true;
+        if (!surveyState.carelessChecked) {
+          surveyState.carelessChecked = true;
+          evaluateCarelessPattern();
+        }
         // 到达完成页时落库（收藏可后续更新）
         persistCurrentReview();
         cardsEl.innerHTML = renderRewardCard();
@@ -2317,6 +2441,12 @@
     document.getElementById('testDailyLimitBtn')?.addEventListener('click', () => showModal('dailyLimitModal'));
     document.getElementById('noBookOkBtn')?.addEventListener('click', () => hideModal('noBookModal'));
     document.getElementById('dailyLimitOkBtn')?.addEventListener('click', () => hideModal('dailyLimitModal'));
+    document.getElementById('carelessOkBtn')?.addEventListener('click', () => hideModal('carelessModal'));
+    const openCarelessTest = () => {
+      showCarelessWarning('【测试】检测到您可能存在敷衍作答行为。请认真阅读并独立作答，否则将限制您的评审资格。');
+    };
+    document.getElementById('testCarelessBtn')?.addEventListener('click', openCarelessTest);
+    document.getElementById('testCarelessBtnSide')?.addEventListener('click', openCarelessTest);
     document.getElementById('testRewardReviewBtn')?.addEventListener('click', () => {
       openCompletionPreview(true);
     });
