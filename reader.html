@@ -1225,7 +1225,7 @@
     <button type="button" class="ext-test-btn reward" id="testRewardReviewBtn">正常完成 · 奖励到账</button>
     <button type="button" class="ext-test-btn" id="testThanksReviewBtn">第11本 · 感谢评审</button>
     <button type="button" class="ext-test-btn" id="testCarelessBtn">测试：连续三份相同评价</button>
-    <p class="ext-test-note">左侧按钮可预览完成页；「连续三份相同评价」会跳过时长并模拟三次雷同评审以触发提醒。</p>
+    <p class="ext-test-note">「连续三份相同评价」会跳过时长并预置两份雷同评审；点「提交评审」后弹窗，改答案后才能继续。</p>
   </aside>
 
   <div class="iphone15">
@@ -1523,6 +1523,8 @@
       surveyState.rewardCredited = true;
       surveyState.saved = true; // 测试态不重复落库
       surveyState.carelessChecked = true; // 完成页预览不触发认真评审检测
+      surveyState.carelessBlocked = false;
+      surveyState.carelessLockSnapshot = null;
       chapterState.readSeconds = getMinReadSeconds();
       chapterState.tooFast = false;
       document.getElementById('drawerMask').classList.add('show');
@@ -1663,7 +1665,8 @@
       surveyState.forceThanksReview = false;
       surveyState.forceRewardReview = false;
       surveyState.lastRewardGranted = null;
-      surveyState.carelessWarned = false;
+      surveyState.carelessBlocked = false;
+      surveyState.carelessLockSnapshot = null;
       surveyState.carelessChecked = false;
       chapterState.readSeconds = 0;
       chapterState.tooFast = false;
@@ -1873,7 +1876,8 @@
       forceThanksReview: false,
       forceRewardReview: false,
       lastRewardGranted: null,
-      carelessWarned: false,
+      carelessBlocked: false,
+      carelessLockSnapshot: null,
       carelessChecked: false,
     };
 
@@ -1929,10 +1933,11 @@
       localStorage.setItem(CARELESS_HISTORY_KEY, JSON.stringify(list.slice(-10)));
     }
 
-    /** 同一评价内：连续三个问题答案位置相同 */
-    function hasSamePositionInCurrentReview() {
+    /** 截至当前题：连续三个问题答案位置相同 */
+    function hasSamePositionUpToCurrent() {
       const questionSteps = (surveyState.steps || []).filter((s) => s !== 'reward');
-      const positions = questionSteps.map((id) => getAnswerPosition(id));
+      const upTo = questionSteps.slice(0, surveyState.currentStep + 1);
+      const positions = upTo.map((id) => getAnswerPosition(id));
       for (let i = 0; i <= positions.length - 3; i += 1) {
         const a = positions[i];
         const b = positions[i + 1];
@@ -1951,6 +1956,16 @@
       return keys.every((key) => last3.every((item) => item[key] === last3[0][key]));
     }
 
+    function getCurrentStepAnswerSnapshot() {
+      const stepId = surveyState.steps[surveyState.currentStep];
+      return JSON.stringify({
+        stepId,
+        value: surveyState.answers[stepId],
+        q2Custom: surveyState.answers.q2Custom,
+        q3Custom: surveyState.answers.q3Custom,
+      });
+    }
+
     function showCarelessWarning(reasonText) {
       const desc = document.getElementById('carelessModalDesc');
       if (desc) {
@@ -1959,32 +1974,42 @@
       showModal('carelessModal');
     }
 
-    function tryWarnCareless(hit) {
-      if (!hit || surveyState.carelessWarned) return false;
-      surveyState.carelessWarned = true;
+    /** 点「下一题」时检测：命中则弹窗并拦截，确认后须改答案才能再点下一题 */
+    function gateCarelessOnNext() {
+      if (surveyState.carelessBlocked) {
+        updateNextBtn();
+        return false;
+      }
+      const nextStepId = surveyState.steps[surveyState.currentStep + 1];
+      const isSubmit = nextStepId === 'reward';
+      const samePos = hasSamePositionUpToCurrent();
+      const sameAcross = isSubmit && hasSameAnswersAcrossThreeReviews(getAnswerFingerprint());
+      if (!samePos && !sameAcross) return true;
+
+      surveyState.carelessBlocked = true;
+      surveyState.carelessLockSnapshot = getCurrentStepAnswerSnapshot();
       showCarelessWarning(CARELESS_WARN_TEXT);
-      return true;
+      updateNextBtn();
+      return false;
     }
 
-    /** 填写过程中：同一评价连续三题选项位置相同则提醒 */
-    function checkCarelessDuringSurvey() {
-      tryWarnCareless(hasSamePositionInCurrentReview());
+    function clearCarelessBlockIfAnswerChanged() {
+      if (!surveyState.carelessBlocked) return;
+      if (getCurrentStepAnswerSnapshot() === surveyState.carelessLockSnapshot) return;
+      surveyState.carelessBlocked = false;
+      surveyState.carelessLockSnapshot = null;
     }
 
-    /** 提交评审时：写入历史，并检测连续三次评价答案完全相同 */
-    function finalizeCarelessOnSubmit() {
+    /** 成功提交进入完成页时写入评价指纹历史 */
+    function recordCarelessHistory() {
       if (surveyState.carelessChecked) return;
       surveyState.carelessChecked = true;
-      const fingerprint = getAnswerFingerprint();
-      const samePosition = hasSamePositionInCurrentReview();
-      const sameAcross = hasSameAnswersAcrossThreeReviews(fingerprint);
       const history = loadCarelessHistory();
-      history.push(fingerprint);
+      history.push(getAnswerFingerprint());
       saveCarelessHistory(history);
-      tryWarnCareless(samePosition || sameAcross);
     }
 
-    /** 测试：跳过时长，连续写入两份相同评价，第三份提交时触发认真评审提醒 */
+    /** 测试：跳过时长，预置两份相同评价，停在最后一题；点「提交评审」触发拦截弹窗 */
     function runCarelessThreeReviewsTest() {
       skipReadTimeForTest();
 
@@ -1999,31 +2024,25 @@
         collect: null,
       };
       const fingerprint = getAnswerFingerprint(sameAnswers);
-
-      // 模拟已连续完成两份完全相同的评价
       saveCarelessHistory([fingerprint, fingerprint]);
 
       surveyState.forceRewardReview = false;
       surveyState.forceThanksReview = false;
       surveyState.answers = { ...sameAnswers, q2: sameAnswers.q2.slice() };
       surveyState.steps = getStepFlow(sameAnswers.q1);
-      surveyState.currentStep = Math.max(0, surveyState.steps.length - 2); // 最后一题，待提交
+      surveyState.currentStep = Math.max(0, surveyState.steps.length - 2);
       surveyState.surveyShown = true;
       surveyState.rewardCredited = false;
       surveyState.saved = false;
       surveyState.lastRewardGranted = null;
-      surveyState.carelessWarned = false;
+      surveyState.carelessBlocked = false;
+      surveyState.carelessLockSnapshot = null;
       surveyState.carelessChecked = false;
       chapterState.readSeconds = getActiveReadSeconds();
       chapterState.tooFast = false;
 
       document.getElementById('drawerMask').classList.add('show');
       document.getElementById('drawer').classList.add('show');
-      renderSurvey();
-
-      // 自动提交第三份相同评价 → 命中连续三次雷同规则并弹窗
-      finalizeCarelessOnSubmit();
-      surveyState.currentStep = surveyState.steps.length - 1;
       renderSurvey();
     }
 
@@ -2111,7 +2130,7 @@
 
       if (stepId === 'reward') {
         surveyState.rewardCredited = true;
-        finalizeCarelessOnSubmit();
+        recordCarelessHistory();
         // 到达完成页时落库（收藏可后续更新）
         persistCurrentReview();
         cardsEl.innerHTML = renderRewardCard();
@@ -2284,8 +2303,8 @@
             surveyState.answers.q2Custom = '';
             surveyState.answers.q3Custom = '';
             surveyState.steps = getStepFlow(opt.value);
+            clearCarelessBlockIfAnswerChanged();
             renderSurvey();
-            checkCarelessDuringSurvey();
           });
         });
         return;
@@ -2313,8 +2332,8 @@
           } else {
             surveyState.answers[q.id] = val;
           }
+          clearCarelessBlockIfAnswerChanged();
           renderSurvey();
-          checkCarelessDuringSurvey();
         });
       });
 
@@ -2323,6 +2342,7 @@
         const customKey = q.id === 'q2' ? 'q2Custom' : 'q3Custom';
         customInput.addEventListener('input', () => {
           surveyState.answers[customKey] = customInput.value;
+          clearCarelessBlockIfAnswerChanged();
           updateNextBtn();
         });
       }
@@ -2349,7 +2369,7 @@
     function updateNextBtn() {
       const btn = document.getElementById('drawerNextBtn');
       const stepId = surveyState.steps[surveyState.currentStep];
-      btn.disabled = !isStepValid(stepId);
+      btn.disabled = !isStepValid(stepId) || !!surveyState.carelessBlocked;
       btn.textContent = surveyState.currentStep === surveyState.steps.length - 2
         ? '提交评审'
         : '下一题';
@@ -2411,12 +2431,12 @@
       if (customInput && (stepId === 'q2' || stepId === 'q3')) {
         surveyState.answers[stepId === 'q2' ? 'q2Custom' : 'q3Custom'] = customInput.value.trim();
       }
+      if (surveyState.carelessBlocked) {
+        updateNextBtn();
+        return;
+      }
+      if (!gateCarelessOnNext()) return;
       if (surveyState.currentStep < surveyState.steps.length - 1) {
-        const nextStepId = surveyState.steps[surveyState.currentStep + 1];
-        // 提交评审进入完成页前：检测连续三次评价雷同
-        if (nextStepId === 'reward') {
-          finalizeCarelessOnSubmit();
-        }
         surveyState.currentStep += 1;
         renderSurvey();
       }
@@ -2488,7 +2508,11 @@
     document.getElementById('testDailyLimitBtn')?.addEventListener('click', () => showModal('dailyLimitModal'));
     document.getElementById('noBookOkBtn')?.addEventListener('click', () => hideModal('noBookModal'));
     document.getElementById('dailyLimitOkBtn')?.addEventListener('click', () => hideModal('dailyLimitModal'));
-    document.getElementById('carelessOkBtn')?.addEventListener('click', () => hideModal('carelessModal'));
+    document.getElementById('carelessOkBtn')?.addEventListener('click', () => {
+      hideModal('carelessModal');
+      // 确认后仍须修改当前题答案，「下一题」保持禁用
+      updateNextBtn();
+    });
     document.getElementById('testCarelessBtn')?.addEventListener('click', runCarelessThreeReviewsTest);
     document.getElementById('testCarelessBtnSide')?.addEventListener('click', runCarelessThreeReviewsTest);
     document.getElementById('testRewardReviewBtn')?.addEventListener('click', () => {
