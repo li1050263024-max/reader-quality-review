@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>阅读</title>
+  <title>兴趣标签 · 阅读评审</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1217,15 +1217,310 @@
       color: #94A3B8;
       margin-top: 6px;
     }
+
+    /* ===== 兴趣 / 避雷标签 ===== */
+    .pref-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 80;
+      background: linear-gradient(180deg, #E8F1FF 0%, #F4F7FA 42%, #F4F7FA 100%);
+      display: flex;
+      flex-direction: column;
+      padding: 54px 18px 28px;
+    }
+    .pref-screen.hidden { display: none; }
+    .pref-eyebrow {
+      font-size: 12px;
+      color: #64748B;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .pref-title {
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.25;
+    }
+    .pref-desc {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #64748B;
+      line-height: 1.55;
+    }
+    .pref-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 18px 0 14px;
+      padding: 4px;
+      background: rgba(255,255,255,0.85);
+      border-radius: 14px;
+      border: 1px solid #E2E8F0;
+    }
+    .pref-tab {
+      flex: 1;
+      border: none;
+      background: transparent;
+      border-radius: 11px;
+      padding: 10px 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #64748B;
+      cursor: pointer;
+    }
+    .pref-tab.active {
+      background: #2563EB;
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
+    }
+    .pref-hint {
+      font-size: 12px;
+      color: #94A3B8;
+      margin-bottom: 10px;
+    }
+    .pref-tags {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-content: flex-start;
+      padding-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .pref-tag {
+      border: 1px solid #CBD5E1;
+      background: #fff;
+      color: #334155;
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .pref-tag.selected {
+      border-color: #2563EB;
+      background: #EFF6FF;
+      color: #1D4ED8;
+    }
+    .pref-tag.avoid.selected {
+      border-color: #F97316;
+      background: #FFF7ED;
+      color: #C2410C;
+    }
+    .pref-footer {
+      padding-top: 10px;
+    }
+    .pref-selected-count {
+      font-size: 12px;
+      color: #64748B;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .pref-start-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #3B82F6, #2563EB);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.28);
+    }
+    .pref-start-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* 大众评价展示 */
+    .public-review-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .intent-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .intent-stat {
+      background: #fff;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+    .intent-stat.want { border-color: #93C5FD; background: #EFF6FF; }
+    .intent-stat.not-want { border-color: #FDBA74; background: #FFF7ED; }
+    .intent-stat-num {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #0F172A;
+    }
+    .intent-stat.want .intent-stat-num { color: #1D4ED8; }
+    .intent-stat.not-want .intent-stat-num { color: #C2410C; }
+    .intent-stat-label {
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748B;
+    }
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 240px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .comment-item {
+      background: #fff;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .comment-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .comment-user {
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .comment-intent {
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .comment-intent.want { color: #1D4ED8; background: #DBEAFE; }
+    .comment-intent.not_want { color: #C2410C; background: #FFEDD5; }
+    .comment-intent.maybe { color: #64748B; background: #F1F5F9; }
+    .comment-text {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.55;
+    }
+    .comment-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .comment-tag {
+      display: inline-block;
+      font-size: 11px;
+      color: #2563EB;
+      background: #EFF6FF;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+    .comment-tag.bad {
+      color: #C2410C;
+      background: #FFF7ED;
+    }
+    .public-collect-block {
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px dashed #E2E8F0;
+    }
+    .public-collect-block .q-title {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+    .choice-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .choice-pair .option-item {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 88px;
+      text-align: center;
+      gap: 8px;
+    }
+    .choice-pair .option-item .option-radio { margin: 0; }
+
+    /* 收藏：对角分割双按钮 */
+    .collect-slash {
+      display: flex;
+      width: 100%;
+      height: 52px;
+      margin-top: 10px;
+      position: relative;
+      filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.08));
+    }
+    .collect-slash-btn {
+      flex: 1;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .collect-slash-btn.no {
+      background: #94A3B8;
+      border-radius: 999px 0 0 999px;
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 0 100%);
+      margin-right: -10px;
+      padding-right: 12px;
+      z-index: 1;
+    }
+    .collect-slash-btn.yes {
+      background: #3B82F6;
+      border-radius: 0 999px 999px 0;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%);
+      margin-left: -10px;
+      padding-left: 12px;
+      z-index: 2;
+    }
+    .collect-slash-btn:active { transform: scale(0.985); }
+    .collect-slash-btn.selected {
+      filter: brightness(1.05);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.55);
+    }
+    .collect-slash-btn:not(.selected) {
+      opacity: 0.78;
+    }
+    .collect-slash:not(:has(.selected)) .collect-slash-btn {
+      opacity: 1;
+    }
+    .field-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #94A3B8;
+      line-height: 1.45;
+    }
   </style>
 </head>
 <body>
   <aside class="ext-test-panel">
-    <div class="ext-test-title">完成页测试</div>
+    <div class="ext-test-title">完成页 / 流程测试</div>
+    <button type="button" class="ext-test-btn" id="testPrefBtn">重开兴趣标签页</button>
     <button type="button" class="ext-test-btn reward" id="testRewardReviewBtn">正常完成 · 奖励到账</button>
     <button type="button" class="ext-test-btn" id="testThanksReviewBtn">第11本 · 感谢评审</button>
     <button type="button" class="ext-test-btn" id="testCarelessBtn">测试：连续三份相同评价</button>
-    <p class="ext-test-note">「连续三份相同评价」会跳过时长并预置两份雷同评审；点「提交评审」后弹窗，改答案后才能继续。</p>
+    <p class="ext-test-note">新版：审核前先选兴趣/避雷标签；问卷为 想继续→优缺点→大众评价→收藏。</p>
   </aside>
 
   <div class="iphone15">
@@ -1240,6 +1535,23 @@
           <span>🔋</span>
         </div>
       </div>
+
+      <!-- 审核前：兴趣标签 / 题材避雷 -->
+      <section class="pref-screen" id="prefScreen">
+        <div class="pref-eyebrow">内容质量评审</div>
+        <h2 class="pref-title">先告诉我你的口味</h2>
+        <p class="pref-desc">选择兴趣标签帮助匹配更合适的书；也可切换到「题材避雷」，避免不想看的内容。</p>
+        <div class="pref-tabs" role="tablist">
+          <button type="button" class="pref-tab active" data-mode="interest" id="prefTabInterest">兴趣标签</button>
+          <button type="button" class="pref-tab" data-mode="avoid" id="prefTabAvoid">题材避雷</button>
+        </div>
+        <p class="pref-hint" id="prefHint">可多选，至少选 1 个兴趣标签</p>
+        <div class="pref-tags" id="prefTags"></div>
+        <div class="pref-footer">
+          <div class="pref-selected-count" id="prefSelectedCount">已选 0 个</div>
+          <button type="button" class="pref-start-btn" id="prefStartBtn" disabled>开始评审阅读</button>
+        </div>
+      </section>
 
       <div class="reader">
         <header class="top-bar">
@@ -1364,25 +1676,27 @@
     <div class="dev-side-title">开发切换</div>
     <a class="dev-link" href="./admin.html">进入后台</a>
     <a class="dev-link secondary" href="./rewards.html">返回任务入口</a>
-    <a class="dev-link secondary" href="./reader.html">刷新阅读页</a>
-    <a class="dev-link secondary" href="./reader-v2.html">新版：兴趣标签评审</a>
+    <a class="dev-link secondary" href="./reader.html">旧版阅读页</a>
+    <a class="dev-link secondary" href="./reader-v2.html">刷新本页（v2）</a>
 
     <div class="dev-side-title">字数档位测试</div>
     <p class="dev-side-note">正式门槛：仅滑动计时</p>
     <div class="dev-group">
-      <button type="button" class="dev-test-btn" data-chars="5000" data-seconds="40">5000 字 → 40 秒</button>
-      <button type="button" class="dev-test-btn active" data-chars="7000" data-seconds="55">7000 字 → 55 秒</button>
+      <button type="button" class="dev-test-btn active" data-chars="5000" data-seconds="40">5000 字 → 40 秒</button>
+      <button type="button" class="dev-test-btn" data-chars="7000" data-seconds="55">7000 字 → 55 秒</button>
       <button type="button" class="dev-test-btn" data-chars="10000" data-seconds="80">10000 字 → 80 秒</button>
     </div>
 
     <div class="dev-side-title">快捷测试</div>
     <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长（视为已达标）</button>
+    <button type="button" class="dev-link secondary" id="testPrefBtnSide">重开兴趣标签页</button>
     <button type="button" class="dev-link secondary" id="testNoBookBtn">空态：暂无可分发书籍</button>
     <button type="button" class="dev-link secondary" id="testDailyLimitBtn">空态：今日评审上限</button>
     <button type="button" class="dev-link secondary" id="testCarelessBtnSide">测试：连续三份相同评价</button>
   </aside>
 
   <script src="./chapters-data.js"></script>
+  <script src="./public-reviews-data.js"></script>
   <script src="./analytics.js"></script>
   <script>
     const chapterState = {
@@ -1393,9 +1707,9 @@
       collectedBooks: [],
       readSeconds: 0,
       tooFast: false,
-      lengthBucket: 7000,
+      lengthBucket: 5000,
       // 测试：当前字数档位（影响截断与门槛时长）
-      testConfig: { chars: 7000, minSeconds: 55 },
+      testConfig: { chars: 5000, minSeconds: 40 },
       // 仅滑动时累计
       activeMs: 0,
       lastScrollAt: 0,
@@ -1509,16 +1823,15 @@
       surveyState.forceThanksReview = !grantReward;
       surveyState.lastRewardGranted = !!grantReward;
       surveyState.answers = {
-        q1: 'star5',
+        q1: 'want',
         q2: ['剧情精彩'],
         q3: [],
         q2Custom: '',
         q3Custom: '',
-        q4: 'yes',
-        q5: 'none',
-        collect: null,
+        collect: 'yes',
+        publicSeen: true,
       };
-      surveyState.steps = ['q1', 'q2', 'q4', 'q5', 'reward'];
+      surveyState.steps = ['q1', 'q2', 'public', 'reward'];
       surveyState.currentStep = surveyState.steps.length - 1;
       surveyState.surveyShown = true;
       surveyState.rewardCredited = true;
@@ -1526,6 +1839,7 @@
       surveyState.carelessChecked = true; // 完成页预览不触发认真评审检测
       surveyState.carelessBlocked = false;
       surveyState.carelessLockSnapshot = null;
+      hidePrefScreen(true);
       chapterState.readSeconds = getMinReadSeconds();
       chapterState.tooFast = false;
       document.getElementById('drawerMask').classList.add('show');
@@ -1579,7 +1893,7 @@
       return (data.paragraphs || []).reduce((sum, p) => sum + (p.content || '').length, 0);
     }
 
-    function truncateLatestContent(text, maxChars = 7000) {
+    function truncateLatestContent(text, maxChars = 5000) {
       const normalized = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       if (normalized.length <= maxChars) return normalized;
       let chunk = normalized.slice(-maxChars);
@@ -1601,7 +1915,7 @@
         : row.result_json;
 
       const rawContent = truncateLatestContent(meta.latest_10k_content || '', 10000);
-      const content = truncateLatestContent(rawContent, 7000);
+      const content = truncateLatestContent(rawContent, 5000);
       const paragraphs = content
         .split('\n')
         .map((line) => line.trim())
@@ -1618,7 +1932,7 @@
         chapterIndex: meta.published_chapter_cnt,
         wordCount: meta.word_count || 0,
         displayChars: paragraphs.reduce((sum, p) => sum + p.content.length, 0),
-        lengthBucket: 7000,
+        lengthBucket: 5000,
         rawContent,
         reward: { text: '阅读奖励', visible: true },
         paragraphs,
@@ -1650,14 +1964,16 @@
       chapterState.index = index;
       resetSurveyState();
       return loadChapterData(index).then((data) => {
-        const chars = (chapterState.testConfig && chapterState.testConfig.chars) || 7000;
+        const chars = (chapterState.testConfig && chapterState.testConfig.chars) || 5000;
         renderChapter(applyContentTruncate(data, chars));
         document.getElementById('content').scrollTop = 0;
       });
     }
 
     function resetSurveyState() {
-      surveyState.answers = { q1: null, q2: [], q3: [], q2Custom: '', q3Custom: '', q4: null, q5: null, collect: null };
+      surveyState.answers = {
+        q1: null, q2: [], q3: [], q2Custom: '', q3Custom: '', collect: null, publicSeen: false,
+      };
       surveyState.steps = ['q1'];
       surveyState.currentStep = 0;
       surveyState.surveyShown = false;
@@ -1809,18 +2125,32 @@
       contentEl.addEventListener('touchmove', chapterState.activityHandler, { passive: true });
     }
 
-    /* ===== 问卷配置（括号内分数仅后台计分，界面不展示） ===== */
+    /* ===== 兴趣 / 避雷标签 ===== */
+    const PREF_TAGS = [
+      '时代少年团', 'TNT', '喜羊羊与灰太狼', '开心超人', '喜人奇妙夜',
+      '名侦探柯南', '海贼王', '火影忍者', '原神', '王者荣耀',
+      '恋与深空', '明星周边', '校园青春', '玄幻修仙', '都市言情',
+      '悬疑推理', '科幻未来', '历史架空', '甜宠', '虐恋',
+    ];
+    const PREF_STORAGE_KEY = 'review-pref-tags-v2';
+
+    const prefState = {
+      mode: 'interest', // interest | avoid
+      interest: [],
+      avoid: [],
+      ready: false,
+    };
+
+    /* ===== 问卷配置（v2） ===== */
     const SURVEY = {
       q1: {
         id: 'q1',
-        title: '你会给这本书打几分？',
+        title: '你是否想继续阅读这本书？',
         type: 'single',
+        layout: 'pair',
         options: [
-          { value: 'star5', label: '5星', score: 5 },
-          { value: 'star4', label: '4星', score: 4 },
-          { value: 'star3', label: '3星', score: 3 },
-          { value: 'star2', label: '2星', score: 2 },
-          { value: 'star1', label: '1星', score: 1 },
+          { value: 'want', label: '想' },
+          { value: 'not_want', label: '不想' },
         ],
       },
       q2: {
@@ -1841,34 +2171,31 @@
           '文笔不佳', '语言啰嗦', '有水文，凑字数现象', '题材老套无聊', '其他',
         ].map((label) => ({ value: label, label })),
       },
-      q4: {
-        id: 'q4',
-        title: '你对这本书是否有继续阅读的想法？',
-        type: 'single',
-        options: [
-          { value: 'very_much', label: '很想继续', score: 5 },
-          { value: 'yes', label: '想继续看', score: 4 },
-          { value: 'maybe', label: '看情况', score: 3 },
-          { value: 'not_really', label: '不太想看', score: 2 },
-          { value: 'no', label: '不想继续看', score: 1 },
-        ],
-      },
-      q5: {
-        id: 'q5',
-        title: '从你的阅读感受来看，这部分内容是否具有较明显的 AI 创作特征？',
-        type: 'single',
-        options: [
-          { value: 'very_obvious', label: '非常明显', score: 5 },
-          { value: 'obvious', label: '比较明显', score: 4 },
-          { value: 'unsure', label: '不确定', score: 3 },
-          { value: 'not_obvious', label: '不太明显', score: 2 },
-          { value: 'none', label: '没有明显感觉', score: 1 },
-        ],
+      public: {
+        id: 'public',
+        title: '大众评价',
+        type: 'public',
       },
     };
 
+    const COLLECT_OPTIONS = [
+      { value: 'yes', label: '收藏' },
+      { value: 'no', label: '暂不收藏' },
+    ];
+
+    const Q2_TAG_SET = new Set(SURVEY.q2.options.map((o) => o.value));
+    const Q3_TAG_SET = new Set(SURVEY.q3.options.map((o) => o.value));
+
     const surveyState = {
-      answers: { q1: null, q2: [], q3: [], q2Custom: '', q3Custom: '', q4: null, q5: null, collect: null },
+      answers: {
+        q1: null,
+        q2: [],
+        q3: [],
+        q2Custom: '',
+        q3Custom: '',
+        collect: null,
+        publicSeen: false,
+      },
       steps: [],
       currentStep: 0,
       surveyShown: false,
@@ -1882,24 +2209,18 @@
       carelessChecked: false,
     };
 
-    const CARELESS_HISTORY_KEY = 'review-careless-history-v1';
+    const CARELESS_HISTORY_KEY = 'review-careless-history-v2';
     const CARELESS_WARN_TEXT = '您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。';
-
-    function getOptionScore(questionId, value) {
-      const opt = SURVEY[questionId]?.options?.find((o) => o.value === value);
-      return opt && typeof opt.score === 'number' ? opt.score : null;
-    }
 
     function getAnswerPosition(questionId, answers = surveyState.answers) {
       const q = SURVEY[questionId];
-      if (!q) return null;
+      if (!q || !q.options) return null;
       if (q.type === 'single') {
         const idx = q.options.findIndex((o) => o.value === answers[questionId]);
         return idx >= 0 ? idx : null;
       }
       const selected = (answers[questionId] || []).slice();
       if (!selected.length) return null;
-      // 多选：仅选 1 项时取该项位置；多项则无法视为「同一位置」
       if (selected.length !== 1) return null;
       const idx = q.options.findIndex((o) => o.value === selected[0]);
       return idx >= 0 ? idx : null;
@@ -1915,8 +2236,7 @@
         q1: answers.q1 || '',
         q2: normMulti(answers.q2, answers.q2Custom),
         q3: normMulti(answers.q3, answers.q3Custom),
-        q4: answers.q4 || '',
-        q5: answers.q5 || '',
+        collect: answers.collect || '',
       };
     }
 
@@ -1934,10 +2254,13 @@
       localStorage.setItem(CARELESS_HISTORY_KEY, JSON.stringify(list.slice(-10)));
     }
 
-    /** 截至当前题：连续三个问题答案位置相同 */
+    /** 截至当前题：连续三个问题答案位置相同（跳过展示页） */
     function hasSamePositionUpToCurrent() {
-      const questionSteps = (surveyState.steps || []).filter((s) => s !== 'reward');
-      const upTo = questionSteps.slice(0, surveyState.currentStep + 1);
+      const questionSteps = (surveyState.steps || []).filter((s) => s !== 'reward' && s !== 'public');
+      const currentId = surveyState.steps[surveyState.currentStep];
+      const currentIdxInFiltered = questionSteps.indexOf(currentId);
+      if (currentIdxInFiltered < 0) return false;
+      const upTo = questionSteps.slice(0, currentIdxInFiltered + 1);
       const positions = upTo.map((id) => getAnswerPosition(id));
       for (let i = 0; i <= positions.length - 3; i += 1) {
         const a = positions[i];
@@ -1953,7 +2276,7 @@
       const history = loadCarelessHistory();
       const last3 = [...history.slice(-2), nextFingerprint];
       if (last3.length < 3) return false;
-      const keys = ['q1', 'q2', 'q3', 'q4', 'q5'];
+      const keys = ['q1', 'q2', 'q3', 'collect'];
       return keys.every((key) => last3.every((item) => item[key] === last3[0][key]));
     }
 
@@ -1961,9 +2284,10 @@
       const stepId = surveyState.steps[surveyState.currentStep];
       return JSON.stringify({
         stepId,
-        value: surveyState.answers[stepId],
+        value: stepId === 'public' ? surveyState.answers.collect : surveyState.answers[stepId],
         q2Custom: surveyState.answers.q2Custom,
         q3Custom: surveyState.answers.q3Custom,
+        collect: surveyState.answers.collect,
       });
     }
 
@@ -2015,14 +2339,13 @@
       skipReadTimeForTest();
 
       const sameAnswers = {
-        q1: 'star5',
+        q1: 'want',
         q2: ['剧情精彩'],
         q3: [],
         q2Custom: '',
         q3Custom: '',
-        q4: 'yes',
-        q5: 'none',
-        collect: null,
+        collect: 'yes',
+        publicSeen: true,
       };
       const fingerprint = getAnswerFingerprint(sameAnswers);
       saveCarelessHistory([fingerprint, fingerprint]);
@@ -2041,6 +2364,7 @@
       surveyState.carelessChecked = false;
       chapterState.readSeconds = getActiveReadSeconds();
       chapterState.tooFast = false;
+      hidePrefScreen(true);
 
       document.getElementById('drawerMask').classList.add('show');
       document.getElementById('drawer').classList.add('show');
@@ -2049,18 +2373,41 @@
 
     function getStepFlow(q1Value) {
       const flow = ['q1'];
-      const score = getOptionScore('q1', q1Value);
-      // 3星及以上 → 优点；3星及以下 → 缺点；3星两者都填
-      if (score != null && score >= 3) flow.push('q2');
-      if (score != null && score <= 3) flow.push('q3');
-      flow.push('q4', 'q5', 'reward');
+      if (q1Value === 'want') flow.push('q2');
+      if (q1Value === 'not_want') flow.push('q3');
+      // 先提交个人评价，再看大众评价（收藏在大众评价下方）
+      flow.push('public', 'reward');
       return flow;
+    }
+
+    function getPublicReviewBundle() {
+      const data = window.PUBLIC_REVIEWS_DATA || {};
+      const chapters = getChapters();
+      const current = chapters[chapterState.index] || {};
+      const bookName = current.bookName || '';
+      const book = (data.books && data.books[bookName]) || null;
+      if (book) {
+        return {
+          bookName,
+          want: book.want || 0,
+          notWant: book.notWant || 0,
+          comments: book.comments || [],
+          source: 'book',
+        };
+      }
+      const g = data.global || {};
+      return {
+        bookName: bookName || '本书',
+        want: g.want || 0,
+        notWant: g.notWant || 0,
+        comments: data.sampleComments || [],
+        source: 'global',
+      };
     }
 
     function openSurvey() {
       chapterState.readSeconds = getActiveReadSeconds();
       chapterState.tooFast = chapterState.readSeconds < getMinReadSeconds();
-      // 强制门槛：不足则不允许进入问卷
       if (chapterState.tooFast) {
         surveyState.surveyShown = false;
         const remain = getMinReadSeconds() - chapterState.readSeconds;
@@ -2080,12 +2427,12 @@
       if (surveyState.saved || !window.ReviewAnalytics) return;
       const chapters = getChapters();
       const current = chapters[chapterState.index] || {};
-      const answers = { ...surveyState.answers };
-      // 分数仅后台使用，不在界面展示
-      answers.scores = {
-        q1: getOptionScore('q1', answers.q1),
-        q4: getOptionScore('q4', answers.q4),
-        q5: getOptionScore('q5', answers.q5),
+      const answers = {
+        ...surveyState.answers,
+        prefs: {
+          interest: prefState.interest.slice(),
+          avoid: prefState.avoid.slice(),
+        },
       };
       const rewardGranted = shouldGrantReward();
       ReviewAnalytics.saveReview({
@@ -2098,9 +2445,110 @@
         tooFast: chapterState.tooFast,
         rewardGranted,
         answers,
+        version: 'v2',
       });
       surveyState.saved = true;
       surveyState.lastRewardGranted = rewardGranted;
+    }
+
+    /* ===== 兴趣标签页逻辑 ===== */
+    function loadPrefFromStorage() {
+      try {
+        const raw = localStorage.getItem(PREF_STORAGE_KEY);
+        const data = raw ? JSON.parse(raw) : null;
+        if (data && Array.isArray(data.interest) && Array.isArray(data.avoid)) {
+          prefState.interest = data.interest.filter((t) => PREF_TAGS.includes(t));
+          prefState.avoid = data.avoid.filter((t) => PREF_TAGS.includes(t));
+        }
+      } catch (_) {}
+    }
+
+    function savePrefToStorage() {
+      localStorage.setItem(PREF_STORAGE_KEY, JSON.stringify({
+        interest: prefState.interest,
+        avoid: prefState.avoid,
+      }));
+    }
+
+    function hidePrefScreen(forceReady) {
+      const el = document.getElementById('prefScreen');
+      if (el) el.classList.add('hidden');
+      if (forceReady) prefState.ready = true;
+    }
+
+    function showPrefScreen() {
+      const el = document.getElementById('prefScreen');
+      if (el) el.classList.remove('hidden');
+      prefState.ready = false;
+      closeSurvey();
+      renderPrefTags();
+    }
+
+    function currentPrefList() {
+      return prefState.mode === 'avoid' ? prefState.avoid : prefState.interest;
+    }
+
+    function renderPrefTags() {
+      const wrap = document.getElementById('prefTags');
+      const hint = document.getElementById('prefHint');
+      const countEl = document.getElementById('prefSelectedCount');
+      const startBtn = document.getElementById('prefStartBtn');
+      if (!wrap) return;
+
+      document.getElementById('prefTabInterest')?.classList.toggle('active', prefState.mode === 'interest');
+      document.getElementById('prefTabAvoid')?.classList.toggle('active', prefState.mode === 'avoid');
+
+      if (hint) {
+        hint.textContent = prefState.mode === 'avoid'
+          ? '可多选不想看到的题材/IP，也可不选直接开始'
+          : '可多选，至少选 1 个兴趣标签后再开始';
+      }
+
+      const selected = currentPrefList();
+      wrap.innerHTML = PREF_TAGS.map((tag) => {
+        const on = selected.includes(tag);
+        const cls = `pref-tag${prefState.mode === 'avoid' ? ' avoid' : ''}${on ? ' selected' : ''}`;
+        return `<button type="button" class="${cls}" data-tag="${tag}">${tag}</button>`;
+      }).join('');
+
+      wrap.querySelectorAll('.pref-tag').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const tag = btn.dataset.tag;
+          const list = currentPrefList();
+          const idx = list.indexOf(tag);
+          if (idx >= 0) list.splice(idx, 1);
+          else list.push(tag);
+          renderPrefTags();
+        });
+      });
+
+      const interestCount = prefState.interest.length;
+      const avoidCount = prefState.avoid.length;
+      if (countEl) {
+        countEl.textContent = prefState.mode === 'avoid'
+          ? `避雷已选 ${avoidCount} 个 · 兴趣已选 ${interestCount} 个`
+          : `兴趣已选 ${interestCount} 个 · 避雷已选 ${avoidCount} 个`;
+      }
+      if (startBtn) startBtn.disabled = interestCount < 1;
+    }
+
+    function bindPrefEvents() {
+      document.getElementById('prefTabInterest')?.addEventListener('click', () => {
+        prefState.mode = 'interest';
+        renderPrefTags();
+      });
+      document.getElementById('prefTabAvoid')?.addEventListener('click', () => {
+        prefState.mode = 'avoid';
+        renderPrefTags();
+      });
+      document.getElementById('prefStartBtn')?.addEventListener('click', () => {
+        if (prefState.interest.length < 1) return;
+        savePrefToStorage();
+        prefState.ready = true;
+        hidePrefScreen(true);
+      });
+      document.getElementById('testPrefBtn')?.addEventListener('click', showPrefScreen);
+      document.getElementById('testPrefBtnSide')?.addEventListener('click', showPrefScreen);
     }
 
     function closeSurvey() {
@@ -2125,9 +2573,16 @@
         })
         .join('');
 
+      const stepNames = {
+        q1: '继续阅读意愿',
+        q2: '优点反馈',
+        q3: '缺点反馈',
+        public: '大众评价',
+        reward: '评审完成',
+      };
       stepLabel.textContent = stepId === 'reward'
         ? '评审完成'
-        : `内容质量评审 · ${currentStep + 1}/${steps.length}`;
+        : `${stepNames[stepId] || '内容质量评审'} · ${currentStep + 1}/${steps.length}`;
 
       if (stepId === 'reward') {
         surveyState.rewardCredited = true;
@@ -2142,7 +2597,8 @@
         return;
       }
 
-      nextBtn.style.display = '';
+      // 大众评价页：选收藏后直接完成，不展示底部「完成评审」按钮
+      nextBtn.style.display = stepId === 'public' ? 'none' : '';
       const q = SURVEY[stepId];
       cardsEl.innerHTML = renderQuestionCard(q);
       cardsEl.style.transform = 'translateX(0)';
@@ -2150,29 +2606,69 @@
       updateNextBtn();
     }
 
-    function renderQuestionCard(q) {
-      if (q.id === 'q1') {
-        const selected = surveyState.answers.q1;
-        const score = getOptionScore('q1', selected) || 0;
-        const hint = score ? `${score}星` : '点击星星评分';
-        const starsHtml = [1, 2, 3, 4, 5].map((n) => `
-          <button type="button" class="star-btn${n <= score ? ' on' : ''}" data-score="${n}" aria-label="${n}星">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 2.5l2.9 6.1 6.7.7-5 4.6 1.4 6.5L12 16.9 5.9 20.4 7.3 13.9l-5-4.6 6.7-.7L12 2.5z"/>
-            </svg>
-          </button>`).join('');
+    function renderPublicReviewCard() {
+      const bundle = getPublicReviewBundle();
+      const intentLabel = {
+        want: '想看',
+        not_want: '不想看',
+        maybe: '看情况',
+      };
+      const comments = (bundle.comments || []).map((c) => {
+        const tagsHtml = (c.tags || []).map((tag) => {
+          const bad = Q3_TAG_SET.has(tag);
+          return `<span class="comment-tag${bad ? ' bad' : ''}">${tag}</span>`;
+        }).join('');
+        const intent = c.intent || 'maybe';
         return `
-          <div class="survey-card">
-            <div class="q-title">${q.title}</div>
-            <div class="q-type">单选</div>
-            <div class="star-rating" id="starRating">${starsHtml}</div>
-            <div class="star-hint${score ? ' has-value' : ''}" id="starHint">${hint}</div>
-          </div>`;
-      }
+        <div class="comment-item">
+          <div class="comment-head">
+            <div class="comment-user">${c.user || '匿名读者'}</div>
+            <span class="comment-intent ${intent}">${intentLabel[intent] || '评价'}</span>
+          </div>
+          <div class="comment-text">${c.text || ''}</div>
+          ${tagsHtml ? `<div class="comment-tags">${tagsHtml}</div>` : ''}
+        </div>`;
+      }).join('') || '<p class="field-note">暂无更多读者评语</p>';
+
+      const collect = surveyState.answers.collect;
+      const sourceNote = bundle.source === 'book'
+        ? `来自本书历史评价`
+        : `来自近期真实评价样本（全书库）`;
+
+      return `
+        <div class="survey-card">
+          <div class="q-title">大众评价</div>
+          <div class="q-type">${sourceNote} · ${bundle.bookName}</div>
+          <div class="public-review-card">
+            <div class="intent-stats">
+              <div class="intent-stat want">
+                <div class="intent-stat-num">${bundle.want}</div>
+                <div class="intent-stat-label">想看</div>
+              </div>
+              <div class="intent-stat not-want">
+                <div class="intent-stat-num">${bundle.notWant}</div>
+                <div class="intent-stat-label">不想看</div>
+              </div>
+            </div>
+            <div class="comment-list">${comments}</div>
+          </div>
+          <div class="public-collect-block">
+            <div class="q-title">是否收藏本书？</div>
+            <div class="collect-slash" role="group" aria-label="是否收藏本书">
+              <button type="button" class="collect-slash-btn no${collect === 'no' ? ' selected' : ''}" data-value="no" data-collect="1">暂不收藏</button>
+              <button type="button" class="collect-slash-btn yes${collect === 'yes' ? ' selected' : ''}" data-value="yes" data-collect="1">收藏</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderQuestionCard(q) {
+      if (q.type === 'public') return renderPublicReviewCard();
 
       const isMulti = q.type === 'multi';
       const selected = surveyState.answers[q.id];
-      const optionsHtml = q.options.map((opt) => {
+      const listClass = q.layout === 'pair' ? 'choice-pair' : 'option-list';
+      const optionsHtml = (q.options || []).map((opt) => {
         const val = opt.value;
         const isSelected = isMulti
           ? (selected || []).includes(val)
@@ -2188,41 +2684,36 @@
       const selectedArr = Array.isArray(selected) ? selected : [];
       const showOther = customKey && selectedArr.includes('其他');
       const customPlaceholder = q.id === 'q2'
-        ? '请填写其他优点'
+        ? '请填写其他优点（必填）'
         : q.id === 'q3'
-          ? '请填写其他缺点'
+          ? '请填写其他缺点（必填）'
           : '';
       const customHtml = showOther
         ? `<div class="custom-feedback">
-            <div class="custom-feedback-label">其他（自行填入）</div>
+            <div class="custom-feedback-label">其他（须填写评语）</div>
             <textarea class="custom-feedback-input" id="customFeedbackInput" maxlength="200" placeholder="${customPlaceholder}">${surveyState.answers[customKey] || ''}</textarea>
           </div>`
+        : '';
+      const note = isMulti
+        ? '<p class="field-note">可多选。仅当选择「其他」时，评语为必填；选普通选项可不填评语。</p>'
         : '';
 
       return `
         <div class="survey-card">
           <div class="q-title">${q.title}</div>
           <div class="q-type">${isMulti ? '多选' : '单选'}</div>
-          <div class="option-list">${optionsHtml}</div>
+          <div class="${listClass}">${optionsHtml}</div>
           ${customHtml}
+          ${note}
         </div>`;
     }
 
     function renderRewardCard() {
       const collect = surveyState.answers.collect;
-      const collectStatus = collect === true ? '已加入收藏' : '';
+      const collectStatus = collect === 'yes' ? '已加入收藏' : '未收藏';
       const grantReward = surveyState.lastRewardGranted != null
         ? surveyState.lastRewardGranted
         : shouldGrantReward();
-
-      const collectBlock = `
-            <div class="collect-ask">
-              <div class="collect-ask-title">是否收藏本书？</div>
-              <div class="collect-ask-actions">
-                <button class="modal-btn secondary${collect === true ? ' selected' : ''}" id="btnCollectYes">收藏</button>
-              </div>
-              <div class="collect-status" id="collectStatus">${collectStatus}</div>
-            </div>`;
 
       if (!grantReward) {
         return `
@@ -2231,7 +2722,7 @@
             <div class="reward-icon-big thanks">🌸</div>
             <div class="reward-title">感谢评审</div>
             <div class="reward-desc">感谢您的认真反馈</div>
-            ${collectBlock}
+            <div class="collect-status" style="margin:8px 0 4px">${collectStatus}</div>
             <div class="reward-actions">
               <button class="drawer-btn primary" id="btnContinue">继续评审</button>
               <button class="drawer-btn secondary" id="btnResult">结束评审</button>
@@ -2247,7 +2738,7 @@
             <div class="reward-title">评审奖励到账</div>
             <div class="reward-amount">+5 泡泡币</div>
             <div class="reward-desc">感谢你的认真评审，奖励已发放至账户</div>
-            ${collectBlock}
+            <div class="collect-status" style="margin:8px 0 4px">${collectStatus}</div>
             <div class="reward-actions">
               <button class="drawer-btn primary" id="btnContinue">继续评审</button>
               <button class="drawer-btn secondary" id="btnResult">结束评审</button>
@@ -2259,10 +2750,8 @@
     function renderResultCard() {
       const a = surveyState.answers;
       const q1Label = SURVEY.q1.options.find((o) => o.value === a.q1)?.label || '-';
-      const q4Label = SURVEY.q4.options.find((o) => o.value === a.q4)?.label || '-';
-      const q5Label = SURVEY.q5.options.find((o) => o.value === a.q5)?.label || '-';
 
-      let rows = `<div class="result-row"><span class="result-label">评分</span><span class="result-value">${q1Label}</span></div>`;
+      let rows = `<div class="result-row"><span class="result-label">想继续阅读</span><span class="result-value">${q1Label}</span></div>`;
       if (a.q2.length) {
         const q2Show = a.q2.filter((x) => x !== '其他');
         const q2Text = [...q2Show, ...(a.q2Custom ? [`其他：${a.q2Custom}`] : [])].join('、');
@@ -2274,9 +2763,9 @@
         if (q3Text) rows += `<div class="result-row"><span class="result-label">缺点</span><span class="result-value">${q3Text}</span></div>`;
       }
       rows += `
-        <div class="result-row"><span class="result-label">继续阅读意愿</span><span class="result-value">${q4Label}</span></div>
-        <div class="result-row"><span class="result-label">AI 特征感受</span><span class="result-value">${q5Label}</span></div>
-        <div class="result-row"><span class="result-label">是否收藏</span><span class="result-value">${a.collect === true ? '已收藏' : '未收藏'}</span></div>
+        <div class="result-row"><span class="result-label">是否收藏</span><span class="result-value">${a.collect === 'yes' ? '已收藏' : '未收藏'}</span></div>
+        <div class="result-row"><span class="result-label">兴趣标签</span><span class="result-value">${prefState.interest.join('、') || '-'}</span></div>
+        <div class="result-row"><span class="result-label">题材避雷</span><span class="result-value">${prefState.avoid.join('、') || '-'}</span></div>
         <div class="result-row"><span class="result-label">阅读时长</span><span class="result-value">${chapterState.readSeconds}s${chapterState.tooFast ? '（不足已标记）' : ''}</span></div>`;
 
       return `
@@ -2292,22 +2781,36 @@
     }
 
     function bindQuestionEvents(q) {
-      if (q.id === 'q1') {
-        document.querySelectorAll('.star-btn').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            const score = Number(btn.dataset.score);
-            const opt = q.options.find((o) => o.score === score);
-            if (!opt) return;
-            surveyState.answers.q1 = opt.value;
-            surveyState.answers.q2 = [];
-            surveyState.answers.q3 = [];
-            surveyState.answers.q2Custom = '';
-            surveyState.answers.q3Custom = '';
-            surveyState.steps = getStepFlow(opt.value);
+      if (q.type === 'public') {
+        surveyState.answers.publicSeen = true;
+        document.querySelectorAll('.collect-slash-btn[data-collect]').forEach((el) => {
+          el.addEventListener('click', () => {
+            const val = el.dataset.value;
+            surveyState.answers.collect = val;
+            const chapters = getChapters();
+            const current = chapters[chapterState.index];
+            if (val === 'yes' && current) {
+              const exists = chapterState.collectedBooks.some((b) => b.bookId === current.bookId);
+              if (!exists) {
+                chapterState.collectedBooks.push({
+                  bookId: current.bookId,
+                  bookName: current.bookName,
+                });
+              }
+            }
             clearCarelessBlockIfAnswerChanged();
-            renderSurvey();
+            // 选完收藏即进入完成页，无需再点「完成评审」
+            if (!gateCarelessOnNext()) {
+              renderSurvey();
+              return;
+            }
+            if (surveyState.currentStep < surveyState.steps.length - 1) {
+              surveyState.currentStep += 1;
+              renderSurvey();
+            }
           });
         });
+        updateNextBtn();
         return;
       }
 
@@ -2330,6 +2833,14 @@
             } else {
               arr.push(val);
             }
+          } else if (q.id === 'q1') {
+            surveyState.answers.q1 = val;
+            surveyState.answers.q2 = [];
+            surveyState.answers.q3 = [];
+            surveyState.answers.q2Custom = '';
+            surveyState.answers.q3Custom = '';
+            surveyState.steps = getStepFlow(val);
+            surveyState.currentStep = 0;
           } else {
             surveyState.answers[q.id] = val;
           }
@@ -2362,52 +2873,35 @@
         if (a.q3.includes('其他') && !String(a.q3Custom || '').trim()) return false;
         return true;
       }
-      if (stepId === 'q4') return !!a.q4;
-      if (stepId === 'q5') return !!a.q5;
+      if (stepId === 'public') return a.collect === 'yes' || a.collect === 'no';
       return true;
     }
 
     function updateNextBtn() {
       const btn = document.getElementById('drawerNextBtn');
       const stepId = surveyState.steps[surveyState.currentStep];
+      const nextId = surveyState.steps[surveyState.currentStep + 1];
       btn.disabled = !isStepValid(stepId) || !!surveyState.carelessBlocked;
-      btn.textContent = surveyState.currentStep === surveyState.steps.length - 2
-        ? '提交评审'
-        : '下一题';
+      if (nextId === 'public') btn.textContent = '提交评价';
+      else btn.textContent = '下一题';
     }
 
     function bindRewardActions() {
       const chapters = getChapters();
-      const current = chapters[chapterState.index];
 
-      const markCollect = (value) => {
-        surveyState.answers.collect = value;
-        if (value && current) {
-          const exists = chapterState.collectedBooks.some((b) => b.bookId === current.bookId);
-          if (!exists) {
-            chapterState.collectedBooks.push({
-              bookId: current.bookId,
-              bookName: current.bookName,
-            });
-          }
+      // 落库后同步收藏字段
+      if (window.ReviewAnalytics) {
+        const current = chapters[chapterState.index];
+        const store = ReviewAnalytics.loadStore();
+        const last = store.reviews[store.reviews.length - 1];
+        if (last && last.bookId === current?.bookId) {
+          last.collected = surveyState.answers.collect === 'yes';
+          last.collectSkipped = surveyState.answers.collect !== 'yes';
+          last.answers = last.answers || {};
+          last.answers.collect = surveyState.answers.collect;
+          localStorage.setItem('review-analytics-v1', JSON.stringify(store));
         }
-        // 若已落库，更新最近一条记录的收藏状态
-        if (window.ReviewAnalytics) {
-          const store = ReviewAnalytics.loadStore();
-          const last = store.reviews[store.reviews.length - 1];
-          if (last && last.bookId === current?.bookId) {
-            last.collected = value === true;
-            last.collectSkipped = false;
-            last.answers = last.answers || {};
-            last.answers.collect = value;
-            localStorage.setItem('review-analytics-v1', JSON.stringify(store));
-          }
-        }
-        document.getElementById('collectStatus').textContent = value ? '已加入收藏' : '';
-        document.getElementById('btnCollectYes')?.classList.toggle('selected', value === true);
-      };
-
-      document.getElementById('btnCollectYes')?.addEventListener('click', () => markCollect(true));
+      }
 
       document.getElementById('btnContinue').addEventListener('click', () => {
         const nextIndex = chapterState.index + 1;
@@ -2528,6 +3022,10 @@
       });
     });
 
+    loadPrefFromStorage();
+    bindPrefEvents();
+    renderPrefTags();
+
     loadChapterByIndex(0)
       .then(() => {
         const params = new URLSearchParams(location.search);
@@ -2535,6 +3033,9 @@
           openCompletionPreview(true);
         } else if (params.has('thanks')) {
           openCompletionPreview(false);
+        } else if (params.has('skippref')) {
+          if (prefState.interest.length < 1) prefState.interest = ['时代少年团'];
+          hidePrefScreen(true);
         }
       })
       .catch((err) => {

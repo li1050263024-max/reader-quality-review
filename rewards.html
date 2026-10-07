@@ -664,7 +664,7 @@
                 <div class="task-progress-text" id="reviewProgressText">0/10 已完成</div>
               </div>
             </div>
-            <a class="go-btn" id="reviewGoBtn" href="./reader.html">去完成</a>
+            <a class="go-btn" id="reviewGoBtn" href="./reader-v2.html">去完成</a>
           </div>
         </section>
 
@@ -720,7 +720,8 @@
 
   <aside class="dev-side">
     <div class="dev-side-title">开发切换</div>
-    <a class="dev-link" href="./reader.html">进入评审页</a>
+    <a class="dev-link" href="./reader-v2.html">进入评审页（新）</a>
+    <a class="dev-link secondary" href="./reader.html">旧版评审页</a>
     <a class="dev-link secondary" href="./admin.html">进入后台</a>
 
     <div class="dev-side-title">入口空态测试</div>
@@ -763,7 +764,7 @@
       desc.textContent = NORMAL_DESC;
       goBtn.classList.remove('disabled');
       goBtn.removeAttribute('aria-disabled');
-      goBtn.setAttribute('href', './reader.html');
+      goBtn.setAttribute('href', './reader-v2.html');
       goBtn.textContent = '去完成';
     }
 
