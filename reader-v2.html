@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <title>兴趣标签 · 阅读评审</title>
+  <title>阅读评审 · 评论序号</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -265,6 +265,19 @@
     .switch-book-btn:active {
       background: #F1F5F9;
       border-color: #94A3B8;
+    }
+    .switch-book-btn.is-review {
+      background: linear-gradient(90deg, #3B82F6, #2563EB);
+      color: #fff;
+      border: none;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.28);
+    }
+    .switch-book-btn.is-review:active {
+      background: #1D4ED8;
+      border-color: transparent;
+    }
+    .bottom-bar.is-review .switch-book-tip {
+      color: #64748B;
     }
 
     .bottom-bar {
@@ -671,6 +684,10 @@
       flex-shrink: 0;
       padding: 8px 20px 24px;
       box-sizing: border-box;
+    }
+    .survey-card.public-page {
+      min-height: 100%;
+      padding-bottom: 12px;
     }
 
     .drawer-body::-webkit-scrollbar { width: 0; }
@@ -1095,6 +1112,12 @@
       padding: 24px;
     }
     .modal-mask.show { display: flex; }
+    /* 雷同/禁评提醒盖过抽屉与侧栏测试区 */
+    #carelessModal,
+    #reviewBanModal {
+      position: fixed;
+      z-index: 9999;
+    }
 
     .modal-box {
       width: 100%;
@@ -1337,49 +1360,91 @@
     }
 
     /* 大众评价展示 */
+    .public-page {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      gap: 12px;
+    }
+    .public-page-main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
     .public-review-card {
       background: #F8FAFC;
       border: 1px solid #E2E8F0;
       border-radius: 14px;
       padding: 14px;
-      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      flex: 1;
+      margin-top: 0;
     }
-    .intent-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
+    .duel-bar-wrap { width: 100%; }
+    .duel-bar-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      gap: 8px;
     }
-    .intent-stat {
-      background: #fff;
-      border: 1px solid #E2E8F0;
-      border-radius: 12px;
-      padding: 12px 10px;
-      text-align: center;
+    .duel-side {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
-    .intent-stat.want { border-color: #93C5FD; background: #EFF6FF; }
-    .intent-stat.not-want { border-color: #FDBA74; background: #FFF7ED; }
-    .intent-stat-num {
-      font-size: 26px;
+    .duel-side.want { align-items: flex-start; }
+    .duel-side.not-want { align-items: flex-end; text-align: right; }
+    .duel-side-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748B;
+    }
+    .duel-side.want .duel-side-label { color: #2563EB; }
+    .duel-side.not-want .duel-side-label { color: #EA580C; }
+    .duel-side-num {
+      font-size: 20px;
       font-weight: 800;
       line-height: 1.1;
       color: #0F172A;
     }
-    .intent-stat.want .intent-stat-num { color: #1D4ED8; }
-    .intent-stat.not-want .intent-stat-num { color: #C2410C; }
-    .intent-stat-label {
-      margin-top: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #64748B;
+    .duel-bar {
+      display: flex;
+      height: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #E2E8F0;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    .duel-bar-want {
+      background: linear-gradient(90deg, #60A5FA, #2563EB);
+      min-width: 4px;
+      transition: flex-grow 0.25s ease;
+    }
+    .duel-bar-not {
+      background: linear-gradient(90deg, #FB923C, #EA580C);
+      min-width: 4px;
+      transition: flex-grow 0.25s ease;
+    }
+    .comment-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      min-height: 120px;
     }
     .comment-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      max-height: 240px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
     }
     .comment-item {
       background: #fff;
@@ -1387,58 +1452,58 @@
       border-radius: 12px;
       padding: 12px;
     }
-    .comment-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
     .comment-user {
       font-size: 12px;
       font-weight: 700;
       color: #334155;
+      margin-bottom: 6px;
     }
-    .comment-intent {
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 999px;
-      padding: 2px 8px;
-    }
-    .comment-intent.want { color: #1D4ED8; background: #DBEAFE; }
-    .comment-intent.not_want { color: #C2410C; background: #FFEDD5; }
-    .comment-intent.maybe { color: #64748B; background: #F1F5F9; }
     .comment-text {
       font-size: 13px;
       color: #475569;
       line-height: 1.55;
     }
-    .comment-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-    .comment-tag {
-      display: inline-block;
-      font-size: 11px;
-      color: #2563EB;
-      background: #EFF6FF;
-      border-radius: 999px;
-      padding: 2px 8px;
-    }
-    .comment-tag.bad {
-      color: #C2410C;
-      background: #FFF7ED;
-    }
-    .public-collect-block {
+    .public-extra-block {
       margin-top: 4px;
       padding-top: 12px;
       border-top: 1px dashed #E2E8F0;
+      flex-shrink: 0;
+    }
+    .public-extra-block .custom-feedback {
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+    .public-extra-block .q-title {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .supplement-submit-btn {
+      width: 100%;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: #2563EB;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .supplement-submit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .supplement-submit-btn:not(:disabled):active {
+      transform: scale(0.98);
+    }
+    .public-collect-block {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid #E2E8F0;
+      flex-shrink: 0;
     }
     .public-collect-block .q-title {
-      font-size: 16px;
-      margin-bottom: 4px;
+      font-size: 15px;
+      margin-bottom: 10px;
     }
     .choice-pair {
       display: grid;
@@ -1516,11 +1581,13 @@
 <body>
   <aside class="ext-test-panel">
     <div class="ext-test-title">完成页 / 流程测试</div>
-    <button type="button" class="ext-test-btn" id="testPrefBtn">重开兴趣标签页</button>
     <button type="button" class="ext-test-btn reward" id="testRewardReviewBtn">正常完成 · 奖励到账</button>
     <button type="button" class="ext-test-btn" id="testThanksReviewBtn">第11本 · 感谢评审</button>
-    <button type="button" class="ext-test-btn" id="testCarelessBtn">测试：连续三份相同评价</button>
-    <p class="ext-test-note">新版：审核前先选兴趣/避雷标签；问卷为 想继续→优缺点→大众评价→收藏。</p>
+    <button type="button" class="ext-test-btn" id="testCarelessBtn">测试：连续5次雷同提醒</button>
+    <button type="button" class="ext-test-btn" id="testBanBtn">测试：连续10次禁评48h</button>
+    <button type="button" class="ext-test-btn" id="testClearBanBtn">恢复禁评资格</button>
+    <button type="button" class="ext-test-btn" id="testScrollBottomBtn">滑到底部</button>
+    <p class="ext-test-note">固定 5000 字 / 40 秒。问卷：打星→想继续→评语→大众评价（最多30条）+收藏。</p>
   </aside>
 
   <div class="iphone15">
@@ -1535,23 +1602,6 @@
           <span>🔋</span>
         </div>
       </div>
-
-      <!-- 审核前：兴趣标签 / 题材避雷 -->
-      <section class="pref-screen" id="prefScreen">
-        <div class="pref-eyebrow">内容质量评审</div>
-        <h2 class="pref-title">先告诉我你的口味</h2>
-        <p class="pref-desc">选择兴趣标签帮助匹配更合适的书；也可切换到「题材避雷」，避免不想看的内容。</p>
-        <div class="pref-tabs" role="tablist">
-          <button type="button" class="pref-tab active" data-mode="interest" id="prefTabInterest">兴趣标签</button>
-          <button type="button" class="pref-tab" data-mode="avoid" id="prefTabAvoid">题材避雷</button>
-        </div>
-        <p class="pref-hint" id="prefHint">可多选，至少选 1 个兴趣标签</p>
-        <div class="pref-tags" id="prefTags"></div>
-        <div class="pref-footer">
-          <div class="pref-selected-count" id="prefSelectedCount">已选 0 个</div>
-          <button type="button" class="pref-start-btn" id="prefStartBtn" disabled>开始评审阅读</button>
-        </div>
-      </section>
 
       <div class="reader">
         <header class="top-bar">
@@ -1657,13 +1707,24 @@
         </div>
       </div>
 
-      <!-- 认真评审提醒 -->
+      <!-- 连续雷同提醒（5次 / 10次） -->
       <div class="modal-mask" id="carelessModal">
         <div class="modal-box">
-          <div class="modal-title">请认真评审</div>
+          <div class="modal-title" id="carelessModalTitle">请认真评审</div>
           <div class="modal-desc" id="carelessModalDesc">您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。</div>
           <div class="modal-actions">
-            <button class="modal-btn primary" id="carelessOkBtn">我知道了</button>
+            <button class="modal-btn primary" id="carelessOkBtn">确认</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 48小时禁评（再次进入时） -->
+      <div class="modal-mask" id="reviewBanModal">
+        <div class="modal-box">
+          <div class="modal-title">评审资格已限制</div>
+          <div class="modal-desc" id="reviewBanDesc">检测到连续多次雷同评价，48小时内无法继续评审。</div>
+          <div class="modal-actions">
+            <button class="modal-btn primary" id="reviewBanOkBtn">确认</button>
           </div>
         </div>
       </div>
@@ -1679,20 +1740,18 @@
     <a class="dev-link secondary" href="./reader.html">旧版阅读页</a>
     <a class="dev-link secondary" href="./reader-v2.html">刷新本页（v2）</a>
 
-    <div class="dev-side-title">字数档位测试</div>
-    <p class="dev-side-note">正式门槛：仅滑动计时</p>
-    <div class="dev-group">
-      <button type="button" class="dev-test-btn active" data-chars="5000" data-seconds="40">5000 字 → 40 秒</button>
-      <button type="button" class="dev-test-btn" data-chars="7000" data-seconds="55">7000 字 → 55 秒</button>
-      <button type="button" class="dev-test-btn" data-chars="10000" data-seconds="80">10000 字 → 80 秒</button>
-    </div>
+    <div class="dev-side-title">阅读门槛</div>
+    <p class="dev-side-note">固定：开头 5000 字 · 有效阅读 40 秒</p>
 
     <div class="dev-side-title">快捷测试</div>
     <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长（视为已达标）</button>
-    <button type="button" class="dev-link secondary" id="testPrefBtnSide">重开兴趣标签页</button>
+    <button type="button" class="dev-link" id="testScrollBottomBtnSide">滑到底部</button>
+    <button type="button" class="dev-link secondary" id="testClearBanBtnSide">恢复禁评资格</button>
     <button type="button" class="dev-link secondary" id="testNoBookBtn">空态：暂无可分发书籍</button>
     <button type="button" class="dev-link secondary" id="testDailyLimitBtn">空态：今日评审上限</button>
-    <button type="button" class="dev-link secondary" id="testCarelessBtnSide">测试：连续三份相同评价</button>
+    <button type="button" class="dev-link secondary" id="testCarelessBtnSide">测试：连续5次雷同提醒</button>
+    <button type="button" class="dev-link secondary" id="testBanBtnSide">测试：连续10次禁评48h</button>
+    <p class="dev-side-note">单书评审上限 30 次；评论展示最多 30 条。</p>
   </aside>
 
   <script src="./chapters-data.js"></script>
@@ -1707,6 +1766,7 @@
       collectedBooks: [],
       readSeconds: 0,
       tooFast: false,
+      bottomCanReview: false,
       lengthBucket: 5000,
       // 测试：当前字数档位（影响截断与门槛时长）
       testConfig: { chars: 5000, minSeconds: 40 },
@@ -1788,10 +1848,15 @@
       chapterState.activeMs = Math.max(chapterState.activeMs, minSec * 1000);
       chapterState.readSeconds = getActiveReadSeconds();
       chapterState.tooFast = false;
-      chapterState.fastWarnShown = false;
       updateTopMeta();
       const tip = document.getElementById('readingTimeTip');
       if (tip) tip.classList.add('is-ready');
+      // 若已在底部，立即把「换书」切为「评价」
+      const contentEl = document.getElementById('content');
+      if (contentEl) {
+        const { scrollTop, scrollHeight, clientHeight } = contentEl;
+        if (scrollTop + clientHeight >= scrollHeight - 60) updateBottomBarAction(true);
+      }
     }
 
     function getActiveReadSeconds() {
@@ -1823,15 +1888,14 @@
       surveyState.forceThanksReview = !grantReward;
       surveyState.lastRewardGranted = !!grantReward;
       surveyState.answers = {
-        q1: 'want',
-        q2: ['剧情精彩'],
-        q3: [],
-        q2Custom: '',
-        q3Custom: '',
+        stars: 'star5',
+        want: 'want',
+        comment: '节奏顺，愿意继续看。',
+        supplement: '',
         collect: 'yes',
         publicSeen: true,
       };
-      surveyState.steps = ['q1', 'q2', 'public', 'reward'];
+      surveyState.steps = ['stars', 'want', 'comment', 'public', 'reward'];
       surveyState.currentStep = surveyState.steps.length - 1;
       surveyState.surveyShown = true;
       surveyState.rewardCredited = true;
@@ -1839,7 +1903,6 @@
       surveyState.carelessChecked = true; // 完成页预览不触发认真评审检测
       surveyState.carelessBlocked = false;
       surveyState.carelessLockSnapshot = null;
-      hidePrefScreen(true);
       chapterState.readSeconds = getMinReadSeconds();
       chapterState.tooFast = false;
       document.getElementById('drawerMask').classList.add('show');
@@ -1879,6 +1942,15 @@
         chapterState.lastTickAt = now;
         chapterState.readSeconds = getActiveReadSeconds();
         updateTopMeta();
+        if (!surveyState.surveyShown) {
+          const contentEl = document.getElementById('content');
+          if (contentEl) {
+            const atBottom = contentEl.scrollTop + contentEl.clientHeight >= contentEl.scrollHeight - 60;
+            if (atBottom && getActiveReadSeconds() >= getMinReadSeconds()) {
+              updateBottomBarAction(true);
+            }
+          }
+        }
       }, 200);
     }
 
@@ -1893,13 +1965,14 @@
       return (data.paragraphs || []).reduce((sum, p) => sum + (p.content || '').length, 0);
     }
 
+    /** 展示开头前 N 字（新书规则：创建1月内 + 小说 + ≥1万字 → 展示前5000字） */
     function truncateLatestContent(text, maxChars = 5000) {
       const normalized = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       if (normalized.length <= maxChars) return normalized;
-      let chunk = normalized.slice(-maxChars);
-      const firstBreak = chunk.indexOf('\n');
-      if (firstBreak >= 0 && firstBreak < 200) chunk = chunk.slice(firstBreak + 1);
-      return chunk.replace(/^\n+/, '');
+      let chunk = normalized.slice(0, maxChars);
+      const lastBreak = chunk.lastIndexOf('\n');
+      if (lastBreak > maxChars - 200) chunk = chunk.slice(0, lastBreak);
+      return chunk.replace(/\n+$/, '');
     }
 
     function getChapters() {
@@ -1972,9 +2045,10 @@
 
     function resetSurveyState() {
       surveyState.answers = {
-        q1: null, q2: [], q3: [], q2Custom: '', q3Custom: '', collect: null, publicSeen: false,
+        stars: null, want: null, comment: '', supplement: '', collect: null, publicSeen: false,
       };
-      surveyState.steps = ['q1'];
+      surveyState.localSupplements = [];
+      surveyState.steps = ['stars', 'want', 'comment', 'public', 'reward'];
       surveyState.currentStep = 0;
       surveyState.surveyShown = false;
       surveyState.rewardCredited = false;
@@ -1985,6 +2059,7 @@
       surveyState.carelessBlocked = false;
       surveyState.carelessLockSnapshot = null;
       surveyState.carelessChecked = false;
+      surveyState.carelessWarnedThisSubmit = false;
       chapterState.readSeconds = 0;
       chapterState.tooFast = false;
       chapterState.activeMs = 0;
@@ -2052,7 +2127,10 @@
       chapterState.readSeconds = 0;
       chapterState.tooFast = false;
       chapterState.lastScrollAt = 0;
+      chapterState.fastWarnShown = false;
+      chapterState.bottomCanReview = false;
       stopReadTicker();
+      updateBottomBarAction(false);
       updateTopMeta();
 
       (data.paragraphs || []).forEach((para) => {
@@ -2074,10 +2152,27 @@
 
       const meta = document.createElement('div');
       meta.className = 'read-meta';
-      meta.textContent = `约 ${chapterState.displayChars} 字 · 滑动阅读满 ${getMinReadSeconds()} 秒后可评价`;
+      meta.textContent = `开头约 ${chapterState.displayChars} 字 · 滑动阅读满 ${getMinReadSeconds()} 秒后可评价`;
       content.appendChild(meta);
 
       setupReadingComplete(content);
+    }
+
+    function updateBottomBarAction(canReview) {
+      const bar = document.querySelector('.bottom-bar');
+      const btn = document.getElementById('switchBookBtn');
+      const tip = document.querySelector('.switch-book-tip');
+      if (!btn) return;
+      chapterState.bottomCanReview = !!canReview;
+      btn.classList.toggle('is-review', !!canReview);
+      bar?.classList.toggle('is-review', !!canReview);
+      if (canReview) {
+        btn.textContent = '评价';
+        if (tip) tip.textContent = '阅读时长已达标，可以开始评价';
+      } else {
+        btn.textContent = '换书';
+        if (tip) tip.textContent = '换书将不会获得该书的评审奖励';
+      }
     }
 
     function setupReadingComplete(contentEl) {
@@ -2095,8 +2190,10 @@
         if (surveyState.surveyShown) return;
 
         const { scrollTop, scrollHeight, clientHeight } = contentEl;
-        if (scrollTop + clientHeight < scrollHeight - 60) {
-          chapterState.fastWarnShown = false;
+        const atBottom = scrollTop + clientHeight >= scrollHeight - 60;
+        if (!atBottom) {
+          // 未触底：保持换书；时长弹窗本本仅一次，上滑不重置
+          if (chapterState.bottomCanReview) updateBottomBarAction(false);
           return;
         }
 
@@ -2106,6 +2203,8 @@
         chapterState.tooFast = elapsedSec < minSec;
 
         if (elapsedSec < minSec) {
+          updateBottomBarAction(false);
+          // 触底未达标：切书不变，时长弹窗仅弹一次
           if (!chapterState.fastWarnShown) {
             chapterState.fastWarnShown = true;
             const remain = minSec - elapsedSec;
@@ -2116,36 +2215,32 @@
           return;
         }
 
-        surveyState.surveyShown = true;
-        stopReadTicker();
-        setTimeout(openSurvey, 400);
+        // 触底且达标：切书变为「评价」，不自动弹问卷
+        updateBottomBarAction(true);
       };
 
       contentEl.addEventListener('scroll', chapterState.scrollHandler, { passive: true });
       contentEl.addEventListener('touchmove', chapterState.activityHandler, { passive: true });
     }
 
-    /* ===== 兴趣 / 避雷标签 ===== */
-    const PREF_TAGS = [
-      '时代少年团', 'TNT', '喜羊羊与灰太狼', '开心超人', '喜人奇妙夜',
-      '名侦探柯南', '海贼王', '火影忍者', '原神', '王者荣耀',
-      '恋与深空', '明星周边', '校园青春', '玄幻修仙', '都市言情',
-      '悬疑推理', '科幻未来', '历史架空', '甜宠', '虐恋',
-    ];
-    const PREF_STORAGE_KEY = 'review-pref-tags-v2';
-
-    const prefState = {
-      mode: 'interest', // interest | avoid
-      interest: [],
-      avoid: [],
-      ready: false,
-    };
-
-    /* ===== 问卷配置（v2） ===== */
+    /* ===== 问卷配置（话本评审修改） ===== */
+    const BOOK_REVIEW_LIMIT = 30; // 单书评审上限（后台分发规则）
     const SURVEY = {
-      q1: {
-        id: 'q1',
-        title: '你是否想继续阅读这本书？',
+      stars: {
+        id: 'stars',
+        title: '你认为这本书值得几星？',
+        type: 'stars',
+        options: [
+          { value: 'star5', label: '5星', score: 5 },
+          { value: 'star4', label: '4星', score: 4 },
+          { value: 'star3', label: '3星', score: 3 },
+          { value: 'star2', label: '2星', score: 2 },
+          { value: 'star1', label: '1星', score: 1 },
+        ],
+      },
+      want: {
+        id: 'want',
+        title: '你是否想继续看这本书？',
         type: 'single',
         layout: 'pair',
         options: [
@@ -2153,50 +2248,29 @@
           { value: 'not_want', label: '不想' },
         ],
       },
-      q2: {
-        id: 'q2',
-        title: '你认为这本书有哪些优点？',
-        type: 'multi',
-        options: [
-          '剧情精彩', '节奏舒服', '人物鲜活', '文笔流畅', '对话自然',
-          '很有吸引力', '越看越想看', '整体完成度高', '没有明显问题', '其他',
-        ].map((label) => ({ value: label, label })),
-      },
-      q3: {
-        id: 'q3',
-        title: '你认为这本书有哪些缺点？',
-        type: 'multi',
-        options: [
-          '剧情重复', '内容拖沓', '逻辑混乱', '人物单薄', '对话生硬',
-          '文笔不佳', '语言啰嗦', '有水文，凑字数现象', '题材老套无聊', '其他',
-        ].map((label) => ({ value: label, label })),
+      comment: {
+        id: 'comment',
+        title: '填写评语',
+        type: 'text',
       },
       public: {
         id: 'public',
-        title: '大众评价',
+        title: '展示该书的评论',
         type: 'public',
       },
     };
 
-    const COLLECT_OPTIONS = [
-      { value: 'yes', label: '收藏' },
-      { value: 'no', label: '暂不收藏' },
-    ];
-
-    const Q2_TAG_SET = new Set(SURVEY.q2.options.map((o) => o.value));
-    const Q3_TAG_SET = new Set(SURVEY.q3.options.map((o) => o.value));
-
     const surveyState = {
       answers: {
-        q1: null,
-        q2: [],
-        q3: [],
-        q2Custom: '',
-        q3Custom: '',
+        stars: null,
+        want: null,
+        comment: '',
+        supplement: '',
         collect: null,
         publicSeen: false,
       },
-      steps: [],
+      localSupplements: [],
+      steps: ['stars', 'want', 'comment', 'public', 'reward'],
       currentStep: 0,
       surveyShown: false,
       rewardCredited: false,
@@ -2207,37 +2281,25 @@
       carelessBlocked: false,
       carelessLockSnapshot: null,
       carelessChecked: false,
+      carelessWarnedThisSubmit: false,
     };
 
-    const CARELESS_HISTORY_KEY = 'review-careless-history-v2';
+    const CARELESS_HISTORY_KEY = 'review-careless-history-v3';
+    const REVIEW_BAN_KEY = 'review-ban-until-v3';
     const CARELESS_WARN_TEXT = '您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。';
 
-    function getAnswerPosition(questionId, answers = surveyState.answers) {
-      const q = SURVEY[questionId];
-      if (!q || !q.options) return null;
-      if (q.type === 'single') {
-        const idx = q.options.findIndex((o) => o.value === answers[questionId]);
-        return idx >= 0 ? idx : null;
-      }
-      const selected = (answers[questionId] || []).slice();
-      if (!selected.length) return null;
-      if (selected.length !== 1) return null;
-      const idx = q.options.findIndex((o) => o.value === selected[0]);
-      return idx >= 0 ? idx : null;
+    function getAnswerFingerprint(answers = surveyState.answers) {
+      // 雷同判定看评价核心答案（打星 / 想看 / 评语）
+      return {
+        stars: answers.stars || '',
+        want: answers.want || '',
+        comment: String(answers.comment || '').trim(),
+      };
     }
 
-    function getAnswerFingerprint(answers = surveyState.answers) {
-      const normMulti = (arr, custom) => {
-        const list = (arr || []).filter((v) => v !== '其他').slice().sort();
-        if ((arr || []).includes('其他')) list.push(`其他:${(custom || '').trim()}`);
-        return list.join('|');
-      };
-      return {
-        q1: answers.q1 || '',
-        q2: normMulti(answers.q2, answers.q2Custom),
-        q3: normMulti(answers.q3, answers.q3Custom),
-        collect: answers.collect || '',
-      };
+    function fingerprintsEqual(a, b) {
+      if (!a || !b) return false;
+      return ['stars', 'want', 'comment'].every((k) => a[k] === b[k]);
     }
 
     function loadCarelessHistory() {
@@ -2251,33 +2313,85 @@
     }
 
     function saveCarelessHistory(list) {
-      localStorage.setItem(CARELESS_HISTORY_KEY, JSON.stringify(list.slice(-10)));
+      localStorage.setItem(CARELESS_HISTORY_KEY, JSON.stringify(list.slice(-20)));
     }
 
-    /** 截至当前题：连续三个问题答案位置相同（跳过展示页） */
-    function hasSamePositionUpToCurrent() {
-      const questionSteps = (surveyState.steps || []).filter((s) => s !== 'reward' && s !== 'public');
-      const currentId = surveyState.steps[surveyState.currentStep];
-      const currentIdxInFiltered = questionSteps.indexOf(currentId);
-      if (currentIdxInFiltered < 0) return false;
-      const upTo = questionSteps.slice(0, currentIdxInFiltered + 1);
-      const positions = upTo.map((id) => getAnswerPosition(id));
-      for (let i = 0; i <= positions.length - 3; i += 1) {
-        const a = positions[i];
-        const b = positions[i + 1];
-        const c = positions[i + 2];
-        if (a != null && a === b && b === c) return true;
-      }
-      return false;
-    }
-
-    /** 连续三次评价：每个问题都选了同一个选项 */
-    function hasSameAnswersAcrossThreeReviews(nextFingerprint) {
+    /** 含本次在内，末尾连续相同评价条数 */
+    function countTrailingIdentical(nextFingerprint) {
       const history = loadCarelessHistory();
-      const last3 = [...history.slice(-2), nextFingerprint];
-      if (last3.length < 3) return false;
-      const keys = ['q1', 'q2', 'q3', 'collect'];
-      return keys.every((key) => last3.every((item) => item[key] === last3[0][key]));
+      let count = 1;
+      for (let i = history.length - 1; i >= 0; i -= 1) {
+        if (!fingerprintsEqual(history[i], nextFingerprint)) break;
+        count += 1;
+      }
+      return count;
+    }
+
+    function getBanUntil() {
+      try {
+        const n = Number(localStorage.getItem(REVIEW_BAN_KEY) || 0);
+        return Number.isFinite(n) ? n : 0;
+      } catch (_) {
+        return 0;
+      }
+    }
+
+    function isReviewBanned() {
+      return Date.now() < getBanUntil();
+    }
+
+    function setReviewBanHours(hours) {
+      const until = Date.now() + hours * 3600 * 1000;
+      localStorage.setItem(REVIEW_BAN_KEY, String(until));
+      return until;
+    }
+
+    function clearReviewBan() {
+      localStorage.removeItem(REVIEW_BAN_KEY);
+      hideModal('reviewBanModal');
+      alert('已恢复评审资格');
+    }
+
+    /** 测试：滚到正文底部（可配合跳过时长触发「评价」） */
+    function scrollToBottomForTest() {
+      const contentEl = document.getElementById('content');
+      if (!contentEl) return;
+      closeSurvey();
+      contentEl.scrollTo({ top: contentEl.scrollHeight, behavior: 'smooth' });
+      // 滚动结束后再跑一次触底逻辑
+      setTimeout(() => {
+        contentEl.dispatchEvent(new Event('scroll'));
+      }, 350);
+    }
+
+    function formatBanRemain(until = getBanUntil()) {
+      const ms = Math.max(0, until - Date.now());
+      const h = Math.floor(ms / 3600000);
+      const m = Math.ceil((ms % 3600000) / 60000);
+      if (h <= 0) return `${m} 分钟`;
+      return `${h} 小时 ${m} 分钟`;
+    }
+
+    function showCarelessWarning(reasonText, titleText) {
+      const title = document.getElementById('carelessModalTitle');
+      const desc = document.getElementById('carelessModalDesc');
+      if (title) title.textContent = titleText || '请认真评审';
+      if (desc) desc.textContent = reasonText || CARELESS_WARN_TEXT;
+      showModal('carelessModal');
+    }
+
+    function showReviewBanModal() {
+      const desc = document.getElementById('reviewBanDesc');
+      if (desc) {
+        desc.textContent = `检测到连续十次评价答案相同，已限制您在 48 小时内禁止评价（剩余约 ${formatBanRemain()}）。`;
+      }
+      showModal('reviewBanModal');
+    }
+
+    function ensureNotBanned() {
+      if (!isReviewBanned()) return true;
+      showReviewBanModal();
+      return false;
     }
 
     function getCurrentStepAnswerSnapshot() {
@@ -2285,37 +2399,33 @@
       return JSON.stringify({
         stepId,
         value: stepId === 'public' ? surveyState.answers.collect : surveyState.answers[stepId],
-        q2Custom: surveyState.answers.q2Custom,
-        q3Custom: surveyState.answers.q3Custom,
+        comment: surveyState.answers.comment,
         collect: surveyState.answers.collect,
       });
     }
 
-    function showCarelessWarning(reasonText) {
-      const desc = document.getElementById('carelessModalDesc');
-      if (desc) {
-        desc.textContent = reasonText || CARELESS_WARN_TEXT;
+    /** 提交评价时：连续5次弹窗提醒；连续10次弹窗提醒并禁评48小时 */
+    function evaluateCarelessOnSubmit() {
+      if (surveyState.carelessWarnedThisSubmit) {
+        return countTrailingIdentical(getAnswerFingerprint());
       }
-      showModal('carelessModal');
-    }
-
-    /** 点「下一题」时检测：命中则弹窗并拦截，确认后须改答案才能再点下一题 */
-    function gateCarelessOnNext() {
-      if (surveyState.carelessBlocked) {
-        updateNextBtn();
-        return false;
+      const fingerprint = getAnswerFingerprint();
+      const streak = countTrailingIdentical(fingerprint);
+      if (streak >= 10) {
+        setReviewBanHours(48);
+        surveyState.carelessWarnedThisSubmit = true;
+        showCarelessWarning(
+          '检测到连续十次评价答案相同。您的评审对书籍非常重要，请认真参与；已限制您 48 小时内禁止评价。',
+          '请认真评审'
+        );
+      } else if (streak >= 5) {
+        surveyState.carelessWarnedThisSubmit = true;
+        showCarelessWarning(
+          '检测到连续五次评价答案相同。您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。',
+          '请认真评审'
+        );
       }
-      const nextStepId = surveyState.steps[surveyState.currentStep + 1];
-      const isSubmit = nextStepId === 'reward';
-      const samePos = hasSamePositionUpToCurrent();
-      const sameAcross = isSubmit && hasSameAnswersAcrossThreeReviews(getAnswerFingerprint());
-      if (!samePos && !sameAcross) return true;
-
-      surveyState.carelessBlocked = true;
-      surveyState.carelessLockSnapshot = getCurrentStepAnswerSnapshot();
-      showCarelessWarning(CARELESS_WARN_TEXT);
-      updateNextBtn();
-      return false;
+      return streak;
     }
 
     function clearCarelessBlockIfAnswerChanged() {
@@ -2329,55 +2439,41 @@
     function recordCarelessHistory() {
       if (surveyState.carelessChecked) return;
       surveyState.carelessChecked = true;
+      const fingerprint = getAnswerFingerprint();
       const history = loadCarelessHistory();
-      history.push(getAnswerFingerprint());
+      history.push(fingerprint);
       saveCarelessHistory(history);
     }
 
-    /** 测试：跳过时长，预置两份相同评价，停在最后一题；点「提交评审」触发拦截弹窗 */
-    function runCarelessThreeReviewsTest() {
-      skipReadTimeForTest();
-
-      const sameAnswers = {
-        q1: 'want',
-        q2: ['剧情精彩'],
-        q3: [],
-        q2Custom: '',
-        q3Custom: '',
-        collect: 'yes',
-        publicSeen: true,
+    /** 测试：预置历史后立刻弹出雷同提醒（不再先进大众评价页） */
+    function runCarelessStreakTest(seedCount, commentText) {
+      const answers = {
+        stars: 'star5',
+        want: 'want',
+        comment: commentText,
+        collect: null,
+        publicSeen: false,
       };
-      const fingerprint = getAnswerFingerprint(sameAnswers);
-      saveCarelessHistory([fingerprint, fingerprint]);
-
-      surveyState.forceRewardReview = false;
-      surveyState.forceThanksReview = false;
-      surveyState.answers = { ...sameAnswers, q2: sameAnswers.q2.slice() };
-      surveyState.steps = getStepFlow(sameAnswers.q1);
-      surveyState.currentStep = Math.max(0, surveyState.steps.length - 2);
-      surveyState.surveyShown = true;
-      surveyState.rewardCredited = false;
-      surveyState.saved = false;
-      surveyState.lastRewardGranted = null;
-      surveyState.carelessBlocked = false;
-      surveyState.carelessLockSnapshot = null;
+      const fingerprint = getAnswerFingerprint(answers);
+      saveCarelessHistory(Array.from({ length: seedCount }, () => ({ ...fingerprint })));
+      surveyState.answers = { ...answers };
+      surveyState.carelessWarnedThisSubmit = false;
       surveyState.carelessChecked = false;
-      chapterState.readSeconds = getActiveReadSeconds();
-      chapterState.tooFast = false;
-      hidePrefScreen(true);
-
-      document.getElementById('drawerMask').classList.add('show');
-      document.getElementById('drawer').classList.add('show');
-      renderSurvey();
+      evaluateCarelessOnSubmit();
     }
 
-    function getStepFlow(q1Value) {
-      const flow = ['q1'];
-      if (q1Value === 'want') flow.push('q2');
-      if (q1Value === 'not_want') flow.push('q3');
-      // 先提交个人评价，再看大众评价（收藏在大众评价下方）
-      flow.push('public', 'reward');
-      return flow;
+    /** 测试：已有4条相同历史，第5条触发提醒 */
+    function runCarelessFiveReviewsTest() {
+      runCarelessStreakTest(4, '测试雷同评语');
+    }
+
+    /** 测试：已有9条相同历史，第10条触发禁评提醒 */
+    function runCarelessTenReviewsBanTest() {
+      runCarelessStreakTest(9, '测试禁评评语');
+    }
+
+    function getStepFlow() {
+      return ['stars', 'want', 'comment', 'public', 'reward'];
     }
 
     function getPublicReviewBundle() {
@@ -2386,26 +2482,23 @@
       const current = chapters[chapterState.index] || {};
       const bookName = current.bookName || '';
       const book = (data.books && data.books[bookName]) || null;
-      if (book) {
-        return {
-          bookName,
-          want: book.want || 0,
-          notWant: book.notWant || 0,
-          comments: book.comments || [],
-          source: 'book',
-        };
-      }
-      const g = data.global || {};
+      // 单书评审上限 30 人：评论最多展示 30 条
+      const maxComments = BOOK_REVIEW_LIMIT;
+      let comments = book ? (book.comments || []) : (data.sampleComments || []);
+      comments = comments.slice(0, maxComments);
+      const want = comments.filter((c) => c.intent === 'want' || c.intent === 'maybe').length;
+      const notWant = comments.filter((c) => c.intent === 'not_want').length;
       return {
-        bookName: bookName || '本书',
-        want: g.want || 0,
-        notWant: g.notWant || 0,
-        comments: data.sampleComments || [],
-        source: 'global',
+        bookName: (book && book.bookName) || bookName || '本书',
+        want,
+        notWant,
+        comments,
+        source: book ? 'book' : 'global',
       };
     }
 
     function openSurvey() {
+      if (!ensureNotBanned()) return;
       chapterState.readSeconds = getActiveReadSeconds();
       chapterState.tooFast = chapterState.readSeconds < getMinReadSeconds();
       if (chapterState.tooFast) {
@@ -2416,8 +2509,10 @@
         showModal('fastReadModal');
         return;
       }
-      surveyState.steps = ['q1'];
+      surveyState.steps = getStepFlow();
       surveyState.currentStep = 0;
+      surveyState.surveyShown = true;
+      surveyState.carelessWarnedThisSubmit = false;
       renderSurvey();
       document.getElementById('drawerMask').classList.add('show');
       document.getElementById('drawer').classList.add('show');
@@ -2427,13 +2522,7 @@
       if (surveyState.saved || !window.ReviewAnalytics) return;
       const chapters = getChapters();
       const current = chapters[chapterState.index] || {};
-      const answers = {
-        ...surveyState.answers,
-        prefs: {
-          interest: prefState.interest.slice(),
-          avoid: prefState.avoid.slice(),
-        },
-      };
+      const answers = { ...surveyState.answers };
       const rewardGranted = shouldGrantReward();
       ReviewAnalytics.saveReview({
         bookId: current.bookId,
@@ -2449,106 +2538,6 @@
       });
       surveyState.saved = true;
       surveyState.lastRewardGranted = rewardGranted;
-    }
-
-    /* ===== 兴趣标签页逻辑 ===== */
-    function loadPrefFromStorage() {
-      try {
-        const raw = localStorage.getItem(PREF_STORAGE_KEY);
-        const data = raw ? JSON.parse(raw) : null;
-        if (data && Array.isArray(data.interest) && Array.isArray(data.avoid)) {
-          prefState.interest = data.interest.filter((t) => PREF_TAGS.includes(t));
-          prefState.avoid = data.avoid.filter((t) => PREF_TAGS.includes(t));
-        }
-      } catch (_) {}
-    }
-
-    function savePrefToStorage() {
-      localStorage.setItem(PREF_STORAGE_KEY, JSON.stringify({
-        interest: prefState.interest,
-        avoid: prefState.avoid,
-      }));
-    }
-
-    function hidePrefScreen(forceReady) {
-      const el = document.getElementById('prefScreen');
-      if (el) el.classList.add('hidden');
-      if (forceReady) prefState.ready = true;
-    }
-
-    function showPrefScreen() {
-      const el = document.getElementById('prefScreen');
-      if (el) el.classList.remove('hidden');
-      prefState.ready = false;
-      closeSurvey();
-      renderPrefTags();
-    }
-
-    function currentPrefList() {
-      return prefState.mode === 'avoid' ? prefState.avoid : prefState.interest;
-    }
-
-    function renderPrefTags() {
-      const wrap = document.getElementById('prefTags');
-      const hint = document.getElementById('prefHint');
-      const countEl = document.getElementById('prefSelectedCount');
-      const startBtn = document.getElementById('prefStartBtn');
-      if (!wrap) return;
-
-      document.getElementById('prefTabInterest')?.classList.toggle('active', prefState.mode === 'interest');
-      document.getElementById('prefTabAvoid')?.classList.toggle('active', prefState.mode === 'avoid');
-
-      if (hint) {
-        hint.textContent = prefState.mode === 'avoid'
-          ? '可多选不想看到的题材/IP，也可不选直接开始'
-          : '可多选，至少选 1 个兴趣标签后再开始';
-      }
-
-      const selected = currentPrefList();
-      wrap.innerHTML = PREF_TAGS.map((tag) => {
-        const on = selected.includes(tag);
-        const cls = `pref-tag${prefState.mode === 'avoid' ? ' avoid' : ''}${on ? ' selected' : ''}`;
-        return `<button type="button" class="${cls}" data-tag="${tag}">${tag}</button>`;
-      }).join('');
-
-      wrap.querySelectorAll('.pref-tag').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const tag = btn.dataset.tag;
-          const list = currentPrefList();
-          const idx = list.indexOf(tag);
-          if (idx >= 0) list.splice(idx, 1);
-          else list.push(tag);
-          renderPrefTags();
-        });
-      });
-
-      const interestCount = prefState.interest.length;
-      const avoidCount = prefState.avoid.length;
-      if (countEl) {
-        countEl.textContent = prefState.mode === 'avoid'
-          ? `避雷已选 ${avoidCount} 个 · 兴趣已选 ${interestCount} 个`
-          : `兴趣已选 ${interestCount} 个 · 避雷已选 ${avoidCount} 个`;
-      }
-      if (startBtn) startBtn.disabled = interestCount < 1;
-    }
-
-    function bindPrefEvents() {
-      document.getElementById('prefTabInterest')?.addEventListener('click', () => {
-        prefState.mode = 'interest';
-        renderPrefTags();
-      });
-      document.getElementById('prefTabAvoid')?.addEventListener('click', () => {
-        prefState.mode = 'avoid';
-        renderPrefTags();
-      });
-      document.getElementById('prefStartBtn')?.addEventListener('click', () => {
-        if (prefState.interest.length < 1) return;
-        savePrefToStorage();
-        prefState.ready = true;
-        hidePrefScreen(true);
-      });
-      document.getElementById('testPrefBtn')?.addEventListener('click', showPrefScreen);
-      document.getElementById('testPrefBtnSide')?.addEventListener('click', showPrefScreen);
     }
 
     function closeSurvey() {
@@ -2574,10 +2563,10 @@
         .join('');
 
       const stepNames = {
-        q1: '继续阅读意愿',
-        q2: '优点反馈',
-        q3: '缺点反馈',
-        public: '大众评价',
+        stars: '打星',
+        want: '继续阅读意愿',
+        comment: '填写评语',
+        public: '展示评论',
         reward: '评审完成',
       };
       stepLabel.textContent = stepId === 'reward'
@@ -2608,49 +2597,55 @@
 
     function renderPublicReviewCard() {
       const bundle = getPublicReviewBundle();
-      const intentLabel = {
-        want: '想看',
-        not_want: '不想看',
-        maybe: '看情况',
-      };
-      const comments = (bundle.comments || []).map((c) => {
-        const tagsHtml = (c.tags || []).map((tag) => {
-          const bad = Q3_TAG_SET.has(tag);
-          return `<span class="comment-tag${bad ? ' bad' : ''}">${tag}</span>`;
-        }).join('');
-        const intent = c.intent || 'maybe';
-        return `
+      const allComments = [
+        ...(bundle.comments || []),
+        ...(surveyState.localSupplements || []),
+      ].slice(0, BOOK_REVIEW_LIMIT);
+      const comments = allComments.map((c, idx) => `
         <div class="comment-item">
-          <div class="comment-head">
-            <div class="comment-user">${c.user || '匿名读者'}</div>
-            <span class="comment-intent ${intent}">${intentLabel[intent] || '评价'}</span>
-          </div>
+          <div class="comment-user">评论${idx + 1}</div>
           <div class="comment-text">${c.text || ''}</div>
-          ${tagsHtml ? `<div class="comment-tags">${tagsHtml}</div>` : ''}
-        </div>`;
-      }).join('') || '<p class="field-note">暂无更多读者评语</p>';
+        </div>`).join('') || '<p class="field-note">暂无更多读者评语</p>';
 
       const collect = surveyState.answers.collect;
-      const sourceNote = bundle.source === 'book'
-        ? `来自本书历史评价`
-        : `来自近期真实评价样本（全书库）`;
+      const want = bundle.want || 0;
+      const notWant = bundle.notWant || 0;
+      const wantFlex = want > 0 ? want : (notWant > 0 ? 0 : 1);
+      const notFlex = notWant > 0 ? notWant : (want > 0 ? 0 : 1);
+      const draft = surveyState.answers.supplement || '';
 
       return `
-        <div class="survey-card">
-          <div class="q-title">大众评价</div>
-          <div class="q-type">${sourceNote} · ${bundle.bookName}</div>
-          <div class="public-review-card">
-            <div class="intent-stats">
-              <div class="intent-stat want">
-                <div class="intent-stat-num">${bundle.want}</div>
-                <div class="intent-stat-label">想看</div>
+        <div class="survey-card public-page">
+          <div class="public-page-main">
+            <div class="q-title" style="margin-bottom:0">大众评价</div>
+            <div class="public-review-card">
+              <div class="duel-bar-wrap">
+                <div class="duel-bar-meta">
+                  <div class="duel-side want">
+                    <span class="duel-side-label">想看</span>
+                    <span class="duel-side-num">${want}</span>
+                  </div>
+                  <div class="duel-side not-want">
+                    <span class="duel-side-label">不想看</span>
+                    <span class="duel-side-num">${notWant}</span>
+                  </div>
+                </div>
+                <div class="duel-bar" aria-label="想看 ${want}，不想看 ${notWant}">
+                  <div class="duel-bar-want" style="flex:${wantFlex} 1 0"></div>
+                  <div class="duel-bar-not" style="flex:${notFlex} 1 0"></div>
+                </div>
               </div>
-              <div class="intent-stat not-want">
-                <div class="intent-stat-num">${bundle.notWant}</div>
-                <div class="intent-stat-label">不想看</div>
+              <div class="comment-scroll" id="publicCommentScroll">
+                <div class="comment-list" id="publicCommentList">${comments}</div>
+                <div class="public-extra-block">
+                  <div class="q-title">补充评价</div>
+                  <div class="custom-feedback">
+                    <textarea class="custom-feedback-input" id="supplementInput" maxlength="200" placeholder="可补充你的看法（选填）">${draft}</textarea>
+                  </div>
+                  <button type="button" class="supplement-submit-btn" id="supplementSubmitBtn"${String(draft).trim() ? '' : ' disabled'}>提交补充评价</button>
+                </div>
               </div>
             </div>
-            <div class="comment-list">${comments}</div>
           </div>
           <div class="public-collect-block">
             <div class="q-title">是否收藏本书？</div>
@@ -2665,46 +2660,54 @@
     function renderQuestionCard(q) {
       if (q.type === 'public') return renderPublicReviewCard();
 
-      const isMulti = q.type === 'multi';
+      if (q.type === 'stars') {
+        const selected = surveyState.answers.stars;
+        const score = SURVEY.stars.options.find((o) => o.value === selected)?.score || 0;
+        const hint = score ? `${score}星` : '点击星星评分';
+        const starsHtml = [1, 2, 3, 4, 5].map((n) => `
+          <button type="button" class="star-btn${n <= score ? ' on' : ''}" data-score="${n}" aria-label="${n}星">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2.5l2.9 6.1 6.7.7-5 4.6 1.4 6.5L12 16.9 5.9 20.4 7.3 13.9l-5-4.6 6.7-.7L12 2.5z"/>
+            </svg>
+          </button>`).join('');
+        return `
+          <div class="survey-card">
+            <div class="q-title">${q.title}</div>
+            <div class="q-type">单选</div>
+            <div class="star-rating" id="starRating">${starsHtml}</div>
+            <div class="star-hint${score ? ' has-value' : ''}" id="starHint">${hint}</div>
+          </div>`;
+      }
+
+      if (q.type === 'text') {
+        return `
+          <div class="survey-card">
+            <div class="q-title">${q.title}</div>
+            <div class="q-type">必填</div>
+            <div class="custom-feedback">
+              <textarea class="custom-feedback-input" id="commentInput" maxlength="200" placeholder="写下你的阅读感受">${surveyState.answers.comment || ''}</textarea>
+            </div>
+            <p class="field-note">请填写真实感受，敷衍雷同评价将被限制评审资格。</p>
+          </div>`;
+      }
+
       const selected = surveyState.answers[q.id];
       const listClass = q.layout === 'pair' ? 'choice-pair' : 'option-list';
       const optionsHtml = (q.options || []).map((opt) => {
         const val = opt.value;
-        const isSelected = isMulti
-          ? (selected || []).includes(val)
-          : selected === val;
+        const isSelected = selected === val;
         return `
           <div class="option-item${isSelected ? ' selected' : ''}" data-value="${val}">
-            <div class="${isMulti ? 'option-check' : 'option-radio'}"></div>
+            <div class="option-radio"></div>
             <span class="option-label">${opt.label}</span>
           </div>`;
       }).join('');
 
-      const customKey = q.id === 'q2' ? 'q2Custom' : q.id === 'q3' ? 'q3Custom' : '';
-      const selectedArr = Array.isArray(selected) ? selected : [];
-      const showOther = customKey && selectedArr.includes('其他');
-      const customPlaceholder = q.id === 'q2'
-        ? '请填写其他优点（必填）'
-        : q.id === 'q3'
-          ? '请填写其他缺点（必填）'
-          : '';
-      const customHtml = showOther
-        ? `<div class="custom-feedback">
-            <div class="custom-feedback-label">其他（须填写评语）</div>
-            <textarea class="custom-feedback-input" id="customFeedbackInput" maxlength="200" placeholder="${customPlaceholder}">${surveyState.answers[customKey] || ''}</textarea>
-          </div>`
-        : '';
-      const note = isMulti
-        ? '<p class="field-note">可多选。仅当选择「其他」时，评语为必填；选普通选项可不填评语。</p>'
-        : '';
-
       return `
         <div class="survey-card">
           <div class="q-title">${q.title}</div>
-          <div class="q-type">${isMulti ? '多选' : '单选'}</div>
+          <div class="q-type">单选</div>
           <div class="${listClass}">${optionsHtml}</div>
-          ${customHtml}
-          ${note}
         </div>`;
     }
 
@@ -2749,24 +2752,16 @@
 
     function renderResultCard() {
       const a = surveyState.answers;
-      const q1Label = SURVEY.q1.options.find((o) => o.value === a.q1)?.label || '-';
-
-      let rows = `<div class="result-row"><span class="result-label">想继续阅读</span><span class="result-value">${q1Label}</span></div>`;
-      if (a.q2.length) {
-        const q2Show = a.q2.filter((x) => x !== '其他');
-        const q2Text = [...q2Show, ...(a.q2Custom ? [`其他：${a.q2Custom}`] : [])].join('、');
-        if (q2Text) rows += `<div class="result-row"><span class="result-label">优点</span><span class="result-value">${q2Text}</span></div>`;
-      }
-      if (a.q3.length) {
-        const q3Show = a.q3.filter((x) => x !== '其他');
-        const q3Text = [...q3Show, ...(a.q3Custom ? [`其他：${a.q3Custom}`] : [])].join('、');
-        if (q3Text) rows += `<div class="result-row"><span class="result-label">缺点</span><span class="result-value">${q3Text}</span></div>`;
-      }
-      rows += `
+      const starLabel = SURVEY.stars.options.find((o) => o.value === a.stars)?.label || '-';
+      const wantLabel = SURVEY.want.options.find((o) => o.value === a.want)?.label || '-';
+      const rows = `
+        <div class="result-row"><span class="result-label">评分</span><span class="result-value">${starLabel}</span></div>
+        <div class="result-row"><span class="result-label">想继续看</span><span class="result-value">${wantLabel}</span></div>
+        <div class="result-row"><span class="result-label">评语</span><span class="result-value">${a.comment || '-'}</span></div>
+        <div class="result-row"><span class="result-label">补充评价</span><span class="result-value">${a.supplementSubmitted || a.supplement || '-'}</span></div>
         <div class="result-row"><span class="result-label">是否收藏</span><span class="result-value">${a.collect === 'yes' ? '已收藏' : '未收藏'}</span></div>
-        <div class="result-row"><span class="result-label">兴趣标签</span><span class="result-value">${prefState.interest.join('、') || '-'}</span></div>
-        <div class="result-row"><span class="result-label">题材避雷</span><span class="result-value">${prefState.avoid.join('、') || '-'}</span></div>
-        <div class="result-row"><span class="result-label">阅读时长</span><span class="result-value">${chapterState.readSeconds}s${chapterState.tooFast ? '（不足已标记）' : ''}</span></div>`;
+        <div class="result-row"><span class="result-label">阅读时长</span><span class="result-value">${chapterState.readSeconds}s${chapterState.tooFast ? '（不足已标记）' : ''}</span></div>
+        <div class="result-row"><span class="result-label">单书上限</span><span class="result-value">${BOOK_REVIEW_LIMIT} 次</span></div>`;
 
       return `
         <div class="survey-card">
@@ -2783,9 +2778,38 @@
     function bindQuestionEvents(q) {
       if (q.type === 'public') {
         surveyState.answers.publicSeen = true;
+        const supplementInput = document.getElementById('supplementInput');
+        const supplementBtn = document.getElementById('supplementSubmitBtn');
+        const syncSupplementBtn = () => {
+          const text = (supplementInput?.value || '').trim();
+          surveyState.answers.supplement = supplementInput?.value || '';
+          if (supplementBtn) supplementBtn.disabled = !text;
+        };
+        supplementInput?.addEventListener('input', syncSupplementBtn);
+        supplementBtn?.addEventListener('click', () => {
+          const text = (supplementInput?.value || '').trim();
+          if (!text) return;
+          surveyState.localSupplements = surveyState.localSupplements || [];
+          surveyState.localSupplements.push({
+            text,
+            intent: surveyState.answers.want === 'not_want' ? 'not_want' : 'want',
+          });
+          // 汇总进最终提交字段（多条用换行拼接）
+          const prev = String(surveyState.answers.supplementSubmitted || '').trim();
+          surveyState.answers.supplementSubmitted = prev ? `${prev}\n${text}` : text;
+          surveyState.answers.supplement = '';
+          renderSurvey();
+          // 滚到评论区底部看到刚提交的内容与补充框
+          requestAnimationFrame(() => {
+            const scroller = document.getElementById('publicCommentScroll');
+            if (scroller) scroller.scrollTop = scroller.scrollHeight;
+          });
+        });
         document.querySelectorAll('.collect-slash-btn[data-collect]').forEach((el) => {
           el.addEventListener('click', () => {
             const val = el.dataset.value;
+            const supplementEl = document.getElementById('supplementInput');
+            if (supplementEl) surveyState.answers.supplement = supplementEl.value.trim();
             surveyState.answers.collect = val;
             const chapters = getChapters();
             const current = chapters[chapterState.index];
@@ -2798,12 +2822,6 @@
                 });
               }
             }
-            clearCarelessBlockIfAnswerChanged();
-            // 选完收藏即进入完成页，无需再点「完成评审」
-            if (!gateCarelessOnNext()) {
-              renderSurvey();
-              return;
-            }
             if (surveyState.currentStep < surveyState.steps.length - 1) {
               surveyState.currentStep += 1;
               renderSurvey();
@@ -2814,65 +2832,44 @@
         return;
       }
 
+      if (q.type === 'stars') {
+        document.querySelectorAll('.star-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const score = Number(btn.dataset.score);
+            const opt = SURVEY.stars.options.find((o) => o.score === score);
+            if (!opt) return;
+            surveyState.answers.stars = opt.value;
+            clearCarelessBlockIfAnswerChanged();
+            renderSurvey();
+          });
+        });
+        return;
+      }
+
+      if (q.type === 'text') {
+        const input = document.getElementById('commentInput');
+        input?.addEventListener('input', () => {
+          surveyState.answers.comment = input.value;
+          clearCarelessBlockIfAnswerChanged();
+          updateNextBtn();
+        });
+        return;
+      }
+
       document.querySelectorAll('.option-item').forEach((el) => {
         el.addEventListener('click', () => {
-          const customInput = document.getElementById('customFeedbackInput');
-          if (customInput && (q.id === 'q2' || q.id === 'q3')) {
-            surveyState.answers[q.id === 'q2' ? 'q2Custom' : 'q3Custom'] = customInput.value.trim();
-          }
-
-          const val = el.dataset.value;
-          if (q.type === 'multi') {
-            const arr = surveyState.answers[q.id];
-            const idx = arr.indexOf(val);
-            if (idx >= 0) {
-              arr.splice(idx, 1);
-              if (val === '其他') {
-                surveyState.answers[q.id === 'q2' ? 'q2Custom' : 'q3Custom'] = '';
-              }
-            } else {
-              arr.push(val);
-            }
-          } else if (q.id === 'q1') {
-            surveyState.answers.q1 = val;
-            surveyState.answers.q2 = [];
-            surveyState.answers.q3 = [];
-            surveyState.answers.q2Custom = '';
-            surveyState.answers.q3Custom = '';
-            surveyState.steps = getStepFlow(val);
-            surveyState.currentStep = 0;
-          } else {
-            surveyState.answers[q.id] = val;
-          }
+          surveyState.answers[q.id] = el.dataset.value;
           clearCarelessBlockIfAnswerChanged();
           renderSurvey();
         });
       });
-
-      const customInput = document.getElementById('customFeedbackInput');
-      if (customInput && (q.id === 'q2' || q.id === 'q3')) {
-        const customKey = q.id === 'q2' ? 'q2Custom' : 'q3Custom';
-        customInput.addEventListener('input', () => {
-          surveyState.answers[customKey] = customInput.value;
-          clearCarelessBlockIfAnswerChanged();
-          updateNextBtn();
-        });
-      }
     }
 
     function isStepValid(stepId) {
       const a = surveyState.answers;
-      if (stepId === 'q1') return !!a.q1;
-      if (stepId === 'q2') {
-        if (!a.q2.length) return false;
-        if (a.q2.includes('其他') && !String(a.q2Custom || '').trim()) return false;
-        return true;
-      }
-      if (stepId === 'q3') {
-        if (!a.q3.length) return false;
-        if (a.q3.includes('其他') && !String(a.q3Custom || '').trim()) return false;
-        return true;
-      }
+      if (stepId === 'stars') return !!a.stars;
+      if (stepId === 'want') return a.want === 'want' || a.want === 'not_want';
+      if (stepId === 'comment') return !!String(a.comment || '').trim();
       if (stepId === 'public') return a.collect === 'yes' || a.collect === 'no';
       return true;
     }
@@ -2922,15 +2919,19 @@
 
     document.getElementById('drawerNextBtn').addEventListener('click', () => {
       const stepId = surveyState.steps[surveyState.currentStep];
-      const customInput = document.getElementById('customFeedbackInput');
-      if (customInput && (stepId === 'q2' || stepId === 'q3')) {
-        surveyState.answers[stepId === 'q2' ? 'q2Custom' : 'q3Custom'] = customInput.value.trim();
+      const commentInput = document.getElementById('commentInput');
+      if (commentInput && stepId === 'comment') {
+        surveyState.answers.comment = commentInput.value.trim();
       }
-      if (surveyState.carelessBlocked) {
+      if (!isStepValid(stepId)) {
         updateNextBtn();
         return;
       }
-      if (!gateCarelessOnNext()) return;
+      const nextId = surveyState.steps[surveyState.currentStep + 1];
+      // 点「提交评价」进入大众评价前：检测连续雷同并弹窗提醒
+      if (nextId === 'public') {
+        evaluateCarelessOnSubmit();
+      }
       if (surveyState.currentStep < surveyState.steps.length - 1) {
         surveyState.currentStep += 1;
         renderSurvey();
@@ -2962,6 +2963,10 @@
     });
 
     document.getElementById('switchBookBtn').addEventListener('click', () => {
+      if (chapterState.bottomCanReview) {
+        openSurvey();
+        return;
+      }
       showModal('skipModal');
     });
 
@@ -2971,7 +2976,7 @@
 
     document.getElementById('fastReadOkBtn').addEventListener('click', () => {
       hideModal('fastReadModal');
-      chapterState.fastWarnShown = false;
+      // 本本时长弹窗仅一次，确认后不重置
     });
 
     document.querySelectorAll('.reason-item').forEach((btn) => {
@@ -2999,33 +3004,31 @@
     });
 
     document.getElementById('skipTimeBtnSide')?.addEventListener('click', skipReadTimeForTest);
+    document.getElementById('testScrollBottomBtn')?.addEventListener('click', scrollToBottomForTest);
+    document.getElementById('testScrollBottomBtnSide')?.addEventListener('click', scrollToBottomForTest);
+    document.getElementById('testClearBanBtn')?.addEventListener('click', clearReviewBan);
+    document.getElementById('testClearBanBtnSide')?.addEventListener('click', clearReviewBan);
     document.getElementById('testNoBookBtn')?.addEventListener('click', () => showModal('noBookModal'));
     document.getElementById('testDailyLimitBtn')?.addEventListener('click', () => showModal('dailyLimitModal'));
     document.getElementById('noBookOkBtn')?.addEventListener('click', () => hideModal('noBookModal'));
     document.getElementById('dailyLimitOkBtn')?.addEventListener('click', () => hideModal('dailyLimitModal'));
     document.getElementById('carelessOkBtn')?.addEventListener('click', () => {
       hideModal('carelessModal');
-      // 确认后仍须修改当前题答案，「下一题」保持禁用
-      updateNextBtn();
     });
-    document.getElementById('testCarelessBtn')?.addEventListener('click', runCarelessThreeReviewsTest);
-    document.getElementById('testCarelessBtnSide')?.addEventListener('click', runCarelessThreeReviewsTest);
+    document.getElementById('reviewBanOkBtn')?.addEventListener('click', () => {
+      hideModal('reviewBanModal');
+      closeSurvey();
+    });
+    document.getElementById('testCarelessBtn')?.addEventListener('click', runCarelessFiveReviewsTest);
+    document.getElementById('testCarelessBtnSide')?.addEventListener('click', runCarelessFiveReviewsTest);
+    document.getElementById('testBanBtn')?.addEventListener('click', runCarelessTenReviewsBanTest);
+    document.getElementById('testBanBtnSide')?.addEventListener('click', runCarelessTenReviewsBanTest);
     document.getElementById('testRewardReviewBtn')?.addEventListener('click', () => {
       openCompletionPreview(true);
     });
     document.getElementById('testThanksReviewBtn')?.addEventListener('click', () => {
       openCompletionPreview(false);
     });
-    document.querySelectorAll('.dev-test-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        applyTestTier(Number(btn.dataset.chars));
-      });
-    });
-
-    loadPrefFromStorage();
-    bindPrefEvents();
-    renderPrefTags();
-
     loadChapterByIndex(0)
       .then(() => {
         const params = new URLSearchParams(location.search);
@@ -3033,9 +3036,6 @@
           openCompletionPreview(true);
         } else if (params.has('thanks')) {
           openCompletionPreview(false);
-        } else if (params.has('skippref')) {
-          if (prefState.interest.length < 1) prefState.interest = ['时代少年团'];
-          hidePrefScreen(true);
         }
       })
       .catch((err) => {

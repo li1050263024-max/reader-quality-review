@@ -111,13 +111,15 @@ def main():
             "want": info["want"],
             "notWant": info["notWant"],
             "maybe": info["maybe"],
-            "comments": (rich + lean)[:10],
+            "comments": (rich + lean)[:30],
         }
 
     rich_global = [c for c in global_comments if c["text"] and not c["text"].startswith("选了：")]
-    want_c = [c for c in rich_global if c["intent"] == "want"][:20]
-    not_c = [c for c in rich_global if c["intent"] == "not_want"][:20]
-    maybe_c = [c for c in rich_global if c["intent"] == "maybe"][:10]
+    lean_global = [c for c in global_comments if c not in rich_global]
+    pool = rich_global + lean_global
+    want_c = [c for c in pool if c["intent"] == "want"][:12]
+    not_c = [c for c in pool if c["intent"] == "not_want"][:12]
+    maybe_c = [c for c in pool if c["intent"] == "maybe"][:12]
     sample = []
     for i in range(max(len(want_c), len(not_c), len(maybe_c))):
         if i < len(want_c):
@@ -126,7 +128,10 @@ def main():
             sample.append(not_c[i])
         if i < len(maybe_c):
             sample.append(maybe_c[i])
-    sample = sample[:24]
+    # 单书上限 30 条评论
+    sample = sample[:30]
+    for name, info in list(book_map.items()):
+        info["comments"] = info["comments"][:30]
 
     payload = {
         "generatedFrom": SRC.name,

@@ -272,6 +272,66 @@ window.PUBLIC_REVIEWS_DATA = {
       ],
       "text": "普通",
       "bookName": "奇文：归屿"
+    },
+    {
+      "user": "读者2585",
+      "intent": "not_want",
+      "tags": [
+        "其他"
+      ],
+      "text": "看不懂题目",
+      "bookName": "第七十三号教室"
+    },
+    {
+      "user": "读者3370",
+      "intent": "not_want",
+      "tags": [
+        "其他",
+        "有水文，凑字数现象",
+        "内容拖沓",
+        "语言啰嗦"
+      ],
+      "text": "全是数学题啊。没有想看下去的欲望，毕竟我是来看小说的，不是来学数学的",
+      "bookName": "第七十三号教室"
+    },
+    {
+      "user": "读者1925",
+      "intent": "not_want",
+      "tags": [
+        "其他",
+        "题材老套无聊"
+      ],
+      "text": "在水字",
+      "bookName": "第七十三号教室"
+    },
+    {
+      "user": "读者1621",
+      "intent": "not_want",
+      "tags": [
+        "其他"
+      ],
+      "text": "目前所看到的内容都是一些题目，没有很多人有耐心以及这个想法，在小说的软件里看一些题",
+      "bookName": "第七十三号教室"
+    },
+    {
+      "user": "读者7817",
+      "intent": "not_want",
+      "tags": [
+        "逻辑混乱",
+        "有水文，凑字数现象",
+        "其他"
+      ],
+      "text": "完全是随便ai乱生成的",
+      "bookName": "PreIude：时间在消逝"
+    },
+    {
+      "user": "读者3300",
+      "intent": "not_want",
+      "tags": [
+        "其他"
+      ],
+      "text": "无聊。",
+      "bookName": "PreIude：时间在消逝"
     }
   ],
   "books": {
