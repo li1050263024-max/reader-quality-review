@@ -590,6 +590,11 @@
       font-size: 14px;
     }
 
+    .read-node {
+      height: 0;
+      overflow: hidden;
+    }
+
     .read-end-tip {
       padding: 24px 0 8px;
       text-align: center;
@@ -1583,11 +1588,12 @@
     <div class="ext-test-title">完成页 / 流程测试</div>
     <button type="button" class="ext-test-btn reward" id="testRewardReviewBtn">正常完成 · 奖励到账</button>
     <button type="button" class="ext-test-btn" id="testThanksReviewBtn">第11本 · 感谢评审</button>
-    <button type="button" class="ext-test-btn" id="testCarelessBtn">测试：连续5次雷同提醒</button>
-    <button type="button" class="ext-test-btn" id="testBanBtn">测试：连续10次禁评48h</button>
-    <button type="button" class="ext-test-btn" id="testClearBanBtn">恢复禁评资格</button>
+    <button type="button" class="ext-test-btn" id="testSpamOnceBtn">模拟一次机械刷评</button>
+    <button type="button" class="ext-test-btn" id="testSpamWarnBtn">直接触发：刷评提示</button>
+    <button type="button" class="ext-test-btn" id="testSpamBanBtn">直接触发：评审限制</button>
+    <button type="button" class="ext-test-btn" id="testClearBanBtn">恢复评审资格</button>
     <button type="button" class="ext-test-btn" id="testScrollBottomBtn">滑到底部</button>
-    <p class="ext-test-note">固定 5000 字 / 40 秒。问卷：打星→想继续→评语→大众评价（最多30条）+收藏。</p>
+    <p class="ext-test-note">固定 5000 字 / 40 秒。每千字记 T1–T5，任一段时长 &gt; 其余之和即机械刷评；每 3 次刷评弹「刷评提示」，第 3 次提示改为「评审限制」24 小时。弹窗在问卷第一题前出现。</p>
   </aside>
 
   <div class="iphone15">
@@ -1707,22 +1713,22 @@
         </div>
       </div>
 
-      <!-- 连续雷同提醒（5次 / 10次） -->
+      <!-- 机械刷评：刷评提示 -->
       <div class="modal-mask" id="carelessModal">
         <div class="modal-box">
-          <div class="modal-title" id="carelessModalTitle">请认真评审</div>
-          <div class="modal-desc" id="carelessModalDesc">您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。</div>
+          <div class="modal-title">刷评提示</div>
+          <div class="modal-desc">系统检测到您有疑似刷评行为，您的评价对书籍至关重要，请认真阅读后作答。若触发三次该提醒，将会限制您的评审资格。</div>
           <div class="modal-actions">
             <button class="modal-btn primary" id="carelessOkBtn">确认</button>
           </div>
         </div>
       </div>
 
-      <!-- 48小时禁评（再次进入时） -->
+      <!-- 机械刷评：评审限制（24小时） -->
       <div class="modal-mask" id="reviewBanModal">
         <div class="modal-box">
-          <div class="modal-title">评审资格已限制</div>
-          <div class="modal-desc" id="reviewBanDesc">检测到连续多次雷同评价，48小时内无法继续评审。</div>
+          <div class="modal-title">评审限制</div>
+          <div class="modal-desc" id="reviewBanDesc">系统检测到您有多次刷评行为，将暂时限制您的评审资格。</div>
           <div class="modal-actions">
             <button class="modal-btn primary" id="reviewBanOkBtn">确认</button>
           </div>
@@ -1746,11 +1752,16 @@
     <div class="dev-side-title">快捷测试</div>
     <button type="button" class="dev-link" id="skipTimeBtnSide">跳过时长（视为已达标）</button>
     <button type="button" class="dev-link" id="testScrollBottomBtnSide">滑到底部</button>
-    <button type="button" class="dev-link secondary" id="testClearBanBtnSide">恢复禁评资格</button>
     <button type="button" class="dev-link secondary" id="testNoBookBtn">空态：暂无可分发书籍</button>
     <button type="button" class="dev-link secondary" id="testDailyLimitBtn">空态：今日评审上限</button>
-    <button type="button" class="dev-link secondary" id="testCarelessBtnSide">测试：连续5次雷同提醒</button>
-    <button type="button" class="dev-link secondary" id="testBanBtnSide">测试：连续10次禁评48h</button>
+
+    <div class="dev-side-title">机械刷评测试</div>
+    <button type="button" class="dev-link secondary" id="testSpamOnceBtnSide">模拟一次机械刷评</button>
+    <button type="button" class="dev-link secondary" id="testSpamWarnBtnSide">直接触发：刷评提示</button>
+    <button type="button" class="dev-link secondary" id="testSpamBanBtnSide">直接触发：评审限制</button>
+    <button type="button" class="dev-link secondary" id="testClearBanBtnSide">恢复评审资格（清空计数）</button>
+    <p class="dev-side-note" id="spamStatus">刷评次数 0 · 提醒次数 0</p>
+    <p class="dev-side-note" id="nodeTimesStatus">千字节点：-</p>
     <p class="dev-side-note">单书评审上限 30 次；评论展示最多 30 条。</p>
   </aside>
 
@@ -1758,6 +1769,9 @@
   <script src="./public-reviews-data.js"></script>
   <script src="./analytics.js"></script>
   <script>
+    const READ_NODE_CHARS = 1000; // 每千字一个节点
+    const READ_NODE_MAX = 5;      // T1–T5
+
     const chapterState = {
       index: 0,
       scrollHandler: null,
@@ -2129,10 +2143,25 @@
       chapterState.lastScrollAt = 0;
       chapterState.fastWarnShown = false;
       chapterState.bottomCanReview = false;
+      chapterState.nodeTimes = [];
+      chapterState.nodeEls = [];
+      chapterState.spamChecked = false;
+      chapterState.mechanical = false;
       stopReadTicker();
       updateBottomBarAction(false);
       updateTopMeta();
 
+      const nodeCount = Math.max(1, Math.min(READ_NODE_MAX, Math.ceil(chapterState.displayChars / READ_NODE_CHARS)));
+      const addNodeMarker = (k) => {
+        const marker = document.createElement('div');
+        marker.className = 'read-node';
+        marker.dataset.k = String(k);
+        content.appendChild(marker);
+        chapterState.nodeEls.push(marker);
+      };
+
+      let cumulative = 0;
+      let nextNode = 1;
       (data.paragraphs || []).forEach((para) => {
         const block = document.createElement('div');
         block.className = 'paragraph-block';
@@ -2143,7 +2172,18 @@
 
         block.appendChild(textEl);
         content.appendChild(block);
+
+        cumulative += String(para.content || '').length;
+        while (nextNode < nodeCount && cumulative >= nextNode * READ_NODE_CHARS) {
+          addNodeMarker(nextNode);
+          nextNode += 1;
+        }
       });
+      while (nextNode <= nodeCount) {
+        addNodeMarker(nextNode);
+        nextNode += 1;
+      }
+      updateSpamStatus();
 
       const endTip = document.createElement('div');
       endTip.className = 'read-end-tip';
@@ -2187,6 +2227,7 @@
 
       chapterState.scrollHandler = () => {
         onReadingActivity();
+        recordReadNodes(contentEl);
         if (surveyState.surveyShown) return;
 
         const { scrollTop, scrollHeight, clientHeight } = contentEl;
@@ -2284,47 +2325,86 @@
       carelessWarnedThisSubmit: false,
     };
 
-    const CARELESS_HISTORY_KEY = 'review-careless-history-v3';
-    const REVIEW_BAN_KEY = 'review-ban-until-v3';
-    const CARELESS_WARN_TEXT = '您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。';
+    const REVIEW_BAN_KEY = 'review-ban-until-v4';
+    const SPAM_STATE_KEY = 'review-spam-state-v1';
+    const SPAM_DETECT_PER_WARN = 3; // 每检测到 3 次机械刷评弹一次「刷评提示」
+    const SPAM_WARN_TO_BAN = 3;     // 第 3 次提示改为「评审限制」
+    const SPAM_BAN_HOURS = 24;
 
-    function getAnswerFingerprint(answers = surveyState.answers) {
-      // 雷同判定看评价核心答案（打星 / 想看 / 评语）
-      return {
-        stars: answers.stars || '',
-        want: answers.want || '',
-        comment: String(answers.comment || '').trim(),
-      };
-    }
-
-    function fingerprintsEqual(a, b) {
-      if (!a || !b) return false;
-      return ['stars', 'want', 'comment'].every((k) => a[k] === b[k]);
-    }
-
-    function loadCarelessHistory() {
+    function loadSpamState() {
       try {
-        const raw = localStorage.getItem(CARELESS_HISTORY_KEY);
-        const list = raw ? JSON.parse(raw) : [];
-        return Array.isArray(list) ? list : [];
+        const raw = JSON.parse(localStorage.getItem(SPAM_STATE_KEY) || '{}');
+        return {
+          detections: Number(raw.detections) || 0,
+          warnings: Number(raw.warnings) || 0,
+        };
       } catch (_) {
-        return [];
+        return { detections: 0, warnings: 0 };
       }
     }
 
-    function saveCarelessHistory(list) {
-      localStorage.setItem(CARELESS_HISTORY_KEY, JSON.stringify(list.slice(-20)));
+    function saveSpamState(state) {
+      localStorage.setItem(SPAM_STATE_KEY, JSON.stringify(state));
+      updateSpamStatus();
     }
 
-    /** 含本次在内，末尾连续相同评价条数 */
-    function countTrailingIdentical(nextFingerprint) {
-      const history = loadCarelessHistory();
-      let count = 1;
-      for (let i = history.length - 1; i >= 0; i -= 1) {
-        if (!fingerprintsEqual(history[i], nextFingerprint)) break;
-        count += 1;
+    function updateSpamStatus() {
+      const state = loadSpamState();
+      const el = document.getElementById('spamStatus');
+      if (el) {
+        el.textContent = `刷评次数 ${state.detections}/${SPAM_DETECT_PER_WARN} · 提醒次数 ${state.warnings}/${SPAM_WARN_TO_BAN}`
+          + (isReviewBanned() ? ` · 限制至 ${formatBanTime()}` : '');
       }
-      return count;
+      const nodeEl = document.getElementById('nodeTimesStatus');
+      if (nodeEl) {
+        const times = chapterState.nodeTimes || [];
+        if (!times.length) {
+          nodeEl.textContent = '千字节点：-';
+        } else {
+          const segs = getNodeSegments(times);
+          nodeEl.textContent = `千字节点 T：${times.map((t) => t.toFixed(1)).join(' / ')}；分段：${segs.map((t) => t.toFixed(1)).join(' / ')}`;
+        }
+      }
+    }
+
+    /** 千字节点进入视口底部时记录当前有效阅读时间 Tn（秒） */
+    function recordReadNodes(contentEl) {
+      const els = chapterState.nodeEls || [];
+      if (!els.length || chapterState.nodeTimes.length >= els.length) return;
+      const viewBottom = contentEl.getBoundingClientRect().bottom;
+      let changed = false;
+      while (chapterState.nodeTimes.length < els.length) {
+        const el = els[chapterState.nodeTimes.length];
+        if (el.getBoundingClientRect().top > viewBottom) break;
+        chapterState.nodeTimes.push(chapterState.activeMs / 1000);
+        changed = true;
+      }
+      if (changed) updateSpamStatus();
+    }
+
+    /** 每千字阅读时长：T1, T2-T1, T3-T2 … */
+    function getNodeSegments(times) {
+      return times.map((t, i) => Math.max(0, t - (i === 0 ? 0 : times[i - 1])));
+    }
+
+    /** 某段时长超过其余各段之和 → 机械刷评 */
+    function isMechanicalReading(times) {
+      if (!times || times.length < 2) return false;
+      const segs = getNodeSegments(times);
+      const total = segs.reduce((a, b) => a + b, 0);
+      return segs.some((seg) => seg > total - seg);
+    }
+
+    function fillMissingNodeTimes() {
+      const els = chapterState.nodeEls || [];
+      while (chapterState.nodeTimes.length < els.length) {
+        chapterState.nodeTimes.push(chapterState.activeMs / 1000);
+      }
+    }
+
+    function formatBanTime(until = getBanUntil()) {
+      const d = new Date(until);
+      return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日${d.getHours()}时${d.getMinutes()}分`;
     }
 
     function getBanUntil() {
@@ -2348,8 +2428,10 @@
 
     function clearReviewBan() {
       localStorage.removeItem(REVIEW_BAN_KEY);
+      saveSpamState({ detections: 0, warnings: 0 });
       hideModal('reviewBanModal');
-      alert('已恢复评审资格');
+      hideModal('carelessModal');
+      alert('已恢复评审资格，刷评计数已清空');
     }
 
     /** 测试：滚到正文底部（可配合跳过时长触发「评价」） */
@@ -2364,26 +2446,10 @@
       }, 350);
     }
 
-    function formatBanRemain(until = getBanUntil()) {
-      const ms = Math.max(0, until - Date.now());
-      const h = Math.floor(ms / 3600000);
-      const m = Math.ceil((ms % 3600000) / 60000);
-      if (h <= 0) return `${m} 分钟`;
-      return `${h} 小时 ${m} 分钟`;
-    }
-
-    function showCarelessWarning(reasonText, titleText) {
-      const title = document.getElementById('carelessModalTitle');
-      const desc = document.getElementById('carelessModalDesc');
-      if (title) title.textContent = titleText || '请认真评审';
-      if (desc) desc.textContent = reasonText || CARELESS_WARN_TEXT;
-      showModal('carelessModal');
-    }
-
     function showReviewBanModal() {
       const desc = document.getElementById('reviewBanDesc');
       if (desc) {
-        desc.textContent = `检测到连续十次评价答案相同，已限制您在 48 小时内禁止评价（剩余约 ${formatBanRemain()}）。`;
+        desc.textContent = `系统检测到您有多次刷评行为，将暂时限制您的评审资格。限制解除时间：${formatBanTime()}`;
       }
       showModal('reviewBanModal');
     }
@@ -2392,6 +2458,37 @@
       if (!isReviewBanned()) return true;
       showReviewBanModal();
       return false;
+    }
+
+    /**
+     * 问卷第一题显示前判定机械刷评。
+     * 返回 'ok' | 'warn' | 'ban'
+     */
+    function evaluateMechanicalBeforeSurvey() {
+      if (chapterState.spamChecked) return 'ok';
+      chapterState.spamChecked = true;
+      fillMissingNodeTimes();
+      chapterState.mechanical = isMechanicalReading(chapterState.nodeTimes);
+      updateSpamStatus();
+      if (!chapterState.mechanical) return 'ok';
+
+      const state = loadSpamState();
+      state.detections += 1;
+      if (state.detections < SPAM_DETECT_PER_WARN) {
+        saveSpamState(state);
+        return 'ok';
+      }
+      state.detections = 0;
+      state.warnings += 1;
+      if (state.warnings >= SPAM_WARN_TO_BAN) {
+        state.warnings = 0;
+        saveSpamState(state);
+        setReviewBanHours(SPAM_BAN_HOURS);
+        updateSpamStatus();
+        return 'ban';
+      }
+      saveSpamState(state);
+      return 'warn';
     }
 
     function getCurrentStepAnswerSnapshot() {
@@ -2404,30 +2501,6 @@
       });
     }
 
-    /** 提交评价时：连续5次弹窗提醒；连续10次弹窗提醒并禁评48小时 */
-    function evaluateCarelessOnSubmit() {
-      if (surveyState.carelessWarnedThisSubmit) {
-        return countTrailingIdentical(getAnswerFingerprint());
-      }
-      const fingerprint = getAnswerFingerprint();
-      const streak = countTrailingIdentical(fingerprint);
-      if (streak >= 10) {
-        setReviewBanHours(48);
-        surveyState.carelessWarnedThisSubmit = true;
-        showCarelessWarning(
-          '检测到连续十次评价答案相同。您的评审对书籍非常重要，请认真参与；已限制您 48 小时内禁止评价。',
-          '请认真评审'
-        );
-      } else if (streak >= 5) {
-        surveyState.carelessWarnedThisSubmit = true;
-        showCarelessWarning(
-          '检测到连续五次评价答案相同。您的评审对书籍非常重要，请认真参与，否则将限制您的评审资格。',
-          '请认真评审'
-        );
-      }
-      return streak;
-    }
-
     function clearCarelessBlockIfAnswerChanged() {
       if (!surveyState.carelessBlocked) return;
       if (getCurrentStepAnswerSnapshot() === surveyState.carelessLockSnapshot) return;
@@ -2435,41 +2508,33 @@
       surveyState.carelessLockSnapshot = null;
     }
 
-    /** 成功提交进入完成页时写入评价指纹历史 */
-    function recordCarelessHistory() {
-      if (surveyState.carelessChecked) return;
-      surveyState.carelessChecked = true;
-      const fingerprint = getAnswerFingerprint();
-      const history = loadCarelessHistory();
-      history.push(fingerprint);
-      saveCarelessHistory(history);
+    /** 测试：用匀速失衡的千字节点模拟一次机械刷评，然后走「评价」流程 */
+    function simulateMechanicalReview() {
+      closeSurvey();
+      hideModal('carelessModal');
+      hideModal('reviewBanModal');
+      const min = getMinReadSeconds();
+      const count = (chapterState.nodeEls || []).length || 5;
+      // 第一千字停留绝大部分时间，后面快速划过
+      chapterState.activeMs = Math.max(chapterState.activeMs, min * 1000);
+      const first = min - (count - 1) * 0.5;
+      chapterState.nodeTimes = Array.from({ length: count }, (_, i) => first + i * 0.5);
+      chapterState.spamChecked = false;
+      chapterState.readSeconds = getActiveReadSeconds();
+      updateBottomBarAction(true);
+      openSurvey();
     }
 
-    /** 测试：预置历史后立刻弹出雷同提醒（不再先进大众评价页） */
-    function runCarelessStreakTest(seedCount, commentText) {
-      const answers = {
-        stars: 'star5',
-        want: 'want',
-        comment: commentText,
-        collect: null,
-        publicSeen: false,
-      };
-      const fingerprint = getAnswerFingerprint(answers);
-      saveCarelessHistory(Array.from({ length: seedCount }, () => ({ ...fingerprint })));
-      surveyState.answers = { ...answers };
-      surveyState.carelessWarnedThisSubmit = false;
-      surveyState.carelessChecked = false;
-      evaluateCarelessOnSubmit();
+    function runSpamWarnTest() {
+      if (isReviewBanned()) localStorage.removeItem(REVIEW_BAN_KEY);
+      saveSpamState({ detections: SPAM_DETECT_PER_WARN - 1, warnings: 0 });
+      simulateMechanicalReview();
     }
 
-    /** 测试：已有4条相同历史，第5条触发提醒 */
-    function runCarelessFiveReviewsTest() {
-      runCarelessStreakTest(4, '测试雷同评语');
-    }
-
-    /** 测试：已有9条相同历史，第10条触发禁评提醒 */
-    function runCarelessTenReviewsBanTest() {
-      runCarelessStreakTest(9, '测试禁评评语');
+    function runSpamBanTest() {
+      if (isReviewBanned()) localStorage.removeItem(REVIEW_BAN_KEY);
+      saveSpamState({ detections: SPAM_DETECT_PER_WARN - 1, warnings: SPAM_WARN_TO_BAN - 1 });
+      simulateMechanicalReview();
     }
 
     function getStepFlow() {
@@ -2509,10 +2574,26 @@
         showModal('fastReadModal');
         return;
       }
+      const spamResult = evaluateMechanicalBeforeSurvey();
+      if (spamResult === 'ban') {
+        surveyState.surveyShown = false;
+        showReviewBanModal();
+        return;
+      }
       surveyState.steps = getStepFlow();
       surveyState.currentStep = 0;
       surveyState.surveyShown = true;
-      surveyState.carelessWarnedThisSubmit = false;
+      if (spamResult === 'warn') {
+        // 先弹「刷评提示」，确认后再显示问卷第一题
+        surveyState.pendingOpenAfterWarn = true;
+        showModal('carelessModal');
+        return;
+      }
+      showSurveyDrawer();
+    }
+
+    function showSurveyDrawer() {
+      surveyState.pendingOpenAfterWarn = false;
       renderSurvey();
       document.getElementById('drawerMask').classList.add('show');
       document.getElementById('drawer').classList.add('show');
@@ -2532,6 +2613,9 @@
         readSeconds: chapterState.readSeconds,
         minReadSeconds: getMinReadSeconds(),
         tooFast: chapterState.tooFast,
+        nodeTimes: (chapterState.nodeTimes || []).map((t) => Number(t.toFixed(1))),
+        nodeSegments: getNodeSegments(chapterState.nodeTimes || []).map((t) => Number(t.toFixed(1))),
+        mechanical: !!chapterState.mechanical,
         rewardGranted,
         answers,
         version: 'v2',
@@ -2575,7 +2659,6 @@
 
       if (stepId === 'reward') {
         surveyState.rewardCredited = true;
-        recordCarelessHistory();
         // 到达完成页时落库（收藏可后续更新）
         persistCurrentReview();
         cardsEl.innerHTML = renderRewardCard();
@@ -2927,11 +3010,6 @@
         updateNextBtn();
         return;
       }
-      const nextId = surveyState.steps[surveyState.currentStep + 1];
-      // 点「提交评价」进入大众评价前：检测连续雷同并弹窗提醒
-      if (nextId === 'public') {
-        evaluateCarelessOnSubmit();
-      }
       if (surveyState.currentStep < surveyState.steps.length - 1) {
         surveyState.currentStep += 1;
         renderSurvey();
@@ -3014,15 +3092,22 @@
     document.getElementById('dailyLimitOkBtn')?.addEventListener('click', () => hideModal('dailyLimitModal'));
     document.getElementById('carelessOkBtn')?.addEventListener('click', () => {
       hideModal('carelessModal');
+      if (surveyState.pendingOpenAfterWarn) showSurveyDrawer();
     });
     document.getElementById('reviewBanOkBtn')?.addEventListener('click', () => {
       hideModal('reviewBanModal');
       closeSurvey();
     });
-    document.getElementById('testCarelessBtn')?.addEventListener('click', runCarelessFiveReviewsTest);
-    document.getElementById('testCarelessBtnSide')?.addEventListener('click', runCarelessFiveReviewsTest);
-    document.getElementById('testBanBtn')?.addEventListener('click', runCarelessTenReviewsBanTest);
-    document.getElementById('testBanBtnSide')?.addEventListener('click', runCarelessTenReviewsBanTest);
+    ['testSpamOnceBtn', 'testSpamOnceBtnSide'].forEach((id) => {
+      document.getElementById(id)?.addEventListener('click', simulateMechanicalReview);
+    });
+    ['testSpamWarnBtn', 'testSpamWarnBtnSide'].forEach((id) => {
+      document.getElementById(id)?.addEventListener('click', runSpamWarnTest);
+    });
+    ['testSpamBanBtn', 'testSpamBanBtnSide'].forEach((id) => {
+      document.getElementById(id)?.addEventListener('click', runSpamBanTest);
+    });
+    updateSpamStatus();
     document.getElementById('testRewardReviewBtn')?.addEventListener('click', () => {
       openCompletionPreview(true);
     });
